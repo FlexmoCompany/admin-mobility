@@ -1,116 +1,97 @@
 import { runtimeConfig } from '@/shared/api/config';
 import { requestJson } from '@/shared/api/http';
 
-export interface DevicePayload {
-  deviceId: string;
-  deviceName: string;
-  platform: string;
-  ip?: string;
-}
-
-export interface AuthMember {
+export interface AuthAdmin {
   _id: string;
+  fullname?: string;
+  email?: string;
   phoneNumber?: string;
-  personalInfos?: {
-    firstname?: string;
-    lastname?: string;
-    email?: string;
-  };
-  role?: {
-    value?: string;
-    label?: string;
-  } | null;
-  company?: {
-    _id?: string;
-    name?: string;
-    reference?: string;
-  } | null;
+  role?: 'superadmin' | 'admin' | 'developer' | string;
+  status?: 'active' | 'inactive' | 'suspended' | string;
+  verified?: boolean;
 }
 
 export interface AuthResponse {
   success: boolean;
   message?: string;
-  member?: AuthMember | null;
-  company?: AuthMember['company'];
+  admin?: AuthAdmin | null;
   token?: string;
-  permissions?: unknown[];
-  isFirstLogin?: boolean;
-  isMFAEnabled?: boolean;
-  requiresOTP?: boolean;
-  memberId?: string;
-  pinId?: string;
-  email?: string;
 }
 
 export interface CredentialsPayload {
-  identifier: string;
+  email: string;
   password: string;
-  device: DevicePayload;
 }
 
-export const authenticateMember = ({ identifier, password, device }: CredentialsPayload) => {
-  const normalizedIdentifier = identifier.trim();
-  const isEmail = normalizedIdentifier.includes('@');
-
-  return requestJson<AuthResponse>('tiersService', '/company-member/auth', {
+export const authenticateAdmin = ({ email, password }: CredentialsPayload) =>
+  requestJson<AuthResponse>('tiersService', '/admin/auth', {
     method: 'POST',
     body: {
-      ...(isEmail ? { email: normalizedIdentifier } : { phoneNumber: normalizedIdentifier.replace(/\s/g, '') }),
+      email: email.trim(),
       password,
-      device,
     },
     headers: {
       product: runtimeConfig.product,
     },
   });
-};
 
-export const verifyMfaOnline = (code: string, token: string) =>
-  requestJson<AuthResponse>('tiersService', '/company-member/mfa/verify/online', {
-    method: 'POST',
-    body: { code },
-    headers: {
-      Authorization: `Bearer ${token}`,
-      product: runtimeConfig.product,
-    },
-  });
-
-export const verifyDeviceOtp = ({
-  pin,
-  pinId,
-  memberId,
-  device,
-}: {
-  pin: string;
-  pinId: string;
-  memberId: string;
-  device: DevicePayload;
-}) =>
-  requestJson<AuthResponse>('tiersService', '/company-member/verify-device-otp', {
-    method: 'POST',
-    body: { pin, pinId, memberId, device },
-    headers: {
-      product: runtimeConfig.product,
-    },
-  });
-
-export const checkMemberSession = (token: string, deviceId: string) =>
-  requestJson<AuthResponse>('tiersService', '/company-member/check-auth/by-token', {
+export const checkAdminSession = (token: string) =>
+  requestJson<AuthResponse>('tiersService', '/admin/check-token', {
     method: 'GET',
     headers: {
       Authorization: `Bearer ${token}`,
-      deviceId,
       product: runtimeConfig.product,
     },
   });
 
-export const logoutMember = (memberId: string, deviceId: string, token: string) =>
-  requestJson<{ success: boolean; message?: string }>('tiersService', `/company-member/logout/${memberId}`, {
-    method: 'POST',
-    body: { deviceId },
-    headers: {
-      Authorization: `Bearer ${token}`,
-      deviceId,
-      product: runtimeConfig.product,
-    },
-  });
+export const logoutAdmin = (token: string) =>
+  requestJson<{ success: boolean; message?: string }>(
+    'tiersService',
+    '/admin/logout',
+    {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        product: runtimeConfig.product,
+      },
+    }
+  );
+
+export const requestPasswordReset = (email: string) =>
+  requestJson<{ success: boolean; message?: string }>(
+    'tiersService',
+    '/admin/forget-password',
+    {
+      method: 'POST',
+      body: { email: email.trim() },
+      headers: {
+        product: runtimeConfig.product,
+      },
+    }
+  );
+
+export const validateResetOtp = (token: string, otp: string) =>
+  requestJson<{ success: boolean; message?: string }>(
+    'tiersService',
+    `/admin/validate-otp/${token}`,
+    {
+      method: 'POST',
+      body: { otp },
+      headers: {
+        product: runtimeConfig.product,
+      },
+    }
+  );
+
+export const resetAdminPassword = (adminId: string, newPassword: string) =>
+  requestJson<{ success: boolean; message?: string }>(
+    'tiersService',
+    `/admin/create-new-password/${adminId}`,
+    {
+      method: 'PUT',
+      body: { newPassword },
+      headers: {
+        product: runtimeConfig.product,
+      },
+    }
+  );

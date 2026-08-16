@@ -11,7 +11,6 @@ import {
   Group,
   Paper,
   PasswordInput,
-  PinInput,
   SimpleGrid,
   Stack,
   Text,
@@ -22,19 +21,20 @@ import {
 import { notifications } from '@mantine/notifications';
 import {
   IconAlertCircle,
+  IconArrowLeft,
   IconArrowRight,
-  IconDeviceDesktop,
   IconGasStation,
   IconKey,
-  IconShieldCheck,
+  IconMail,
 } from '@tabler/icons-react';
 
 import { runtimeConfig } from '@/shared/api/config';
 
+import { requestPasswordReset } from './auth-api';
 import { useAuthStore } from './auth-store';
 
 const authFacts = [
-  { label: 'Contrat backend', value: 'company-member/auth' },
+  { label: 'Contrat backend', value: 'admin/auth' },
   { label: 'Session', value: 'JWT 24h web' },
   { label: 'Acces produit', value: runtimeConfig.product },
 ];
@@ -44,15 +44,14 @@ export function AuthPage() {
   const location = useLocation();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const login = useAuthStore((state) => state.login);
-  const verifyMfa = useAuthStore((state) => state.verifyMfa);
-  const verifyDeviceOtp = useAuthStore((state) => state.verifyDeviceOtp);
-  const pendingChallenge = useAuthStore((state) => state.pendingChallenge);
   const isLoading = useAuthStore((state) => state.isLoading);
   const authError = useAuthStore((state) => state.error);
-  const [identifier, setIdentifier] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [remember, setRemember] = useState(true);
-  const [challengeCode, setChallengeCode] = useState('');
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [isSubmittingReset, setIsSubmittingReset] = useState(false);
 
   const from = useMemo(() => {
     const state = location.state as { from?: { pathname?: string } } | null;
@@ -67,7 +66,7 @@ export function AuthPage() {
     notifications.show({
       color: 'green',
       title: 'Session ouverte',
-      message: 'Authentification membre validee par tiers-service.',
+      message: 'Authentification admin validee par tiers-service.',
     });
     navigate(from, { replace: true });
   };
@@ -76,48 +75,57 @@ export function AuthPage() {
     event.preventDefault();
 
     try {
-      if (pendingChallenge?.type === 'mfa') {
-        await verifyMfa(challengeCode);
-        completeLogin();
-        return;
-      }
-
-      if (pendingChallenge?.type === 'device-otp') {
-        await verifyDeviceOtp(challengeCode);
-        completeLogin();
-        return;
-      }
-
-      const result = await login({ identifier, password, remember });
+      const result = await login({ email, password, remember });
 
       if (result === 'authenticated') {
         completeLogin();
-        return;
       }
-
-      notifications.show({
-        color: 'blue',
-        title: result === 'mfa' ? 'MFA requis' : 'Verification appareil requise',
-        message:
-          result === 'mfa'
-            ? 'Saisissez le code de votre application MFA.'
-            : 'Saisissez le code OTP envoye pour valider cet appareil.',
-      });
     } catch (error) {
       notifications.show({
         color: 'red',
         title: 'Connexion refusee',
-        message: error instanceof Error ? error.message : 'Impossible de vous connecter.',
+        message:
+          error instanceof Error
+            ? error.message
+            : 'Impossible de vous connecter.',
       });
     }
   };
 
-  const challengeTitle =
-    pendingChallenge?.type === 'mfa' ? 'Verification MFA' : 'Verification appareil';
-  const challengeDescription =
-    pendingChallenge?.type === 'mfa'
-      ? 'Le compte a une authentification multifacteur activee.'
-      : `Nouvel appareil detecte${pendingChallenge?.email ? ` pour ${pendingChallenge.email}` : ''}.`;
+  const handlePasswordResetRequest = async (
+    event: FormEvent<HTMLFormElement>
+  ) => {
+    event.preventDefault();
+    setIsSubmittingReset(true);
+
+    try {
+      const response = await requestPasswordReset(forgotEmail);
+
+      notifications.show({
+        color: response.success ? 'green' : 'yellow',
+        title: response.success ? 'Email envoye' : 'Information',
+        message:
+          response.message ||
+          'Si ce compte existe, un email de reinitialisation a ete envoye.',
+      });
+
+      if (response.success) {
+        setShowForgotPassword(false);
+        setForgotEmail('');
+      }
+    } catch (error) {
+      notifications.show({
+        color: 'red',
+        title: 'Demande impossible',
+        message:
+          error instanceof Error
+            ? error.message
+            : 'Impossible de demander une reinitialisation.',
+      });
+    } finally {
+      setIsSubmittingReset(false);
+    }
+  };
 
   return (
     <Box className="auth-shell">
@@ -144,8 +152,8 @@ export function AuthPage() {
                 Connexion backoffice
               </Title>
               <Text c="dimmed" size="lg" maw={600} mt="md">
-                Utilisez le compte membre admin/owner de la compagnie. Le backend valide le mot de passe,
-                le produit autorise, le token JWT, les permissions et les controles MFA si actifs.
+                Utilisez votre compte administrateur global. Le backend valide
+                l&apos;email, le mot de passe et le token JWT de session admin.
               </Text>
             </div>
 
@@ -163,78 +171,134 @@ export function AuthPage() {
             </SimpleGrid>
           </Stack>
 
-          <Paper withBorder shadow="sm" radius="md" p={{ base: 'lg', sm: 'xl' }} className="auth-card">
+          <Paper
+            withBorder
+            shadow="sm"
+            radius="md"
+            p={{ base: 'lg', sm: 'xl' }}
+            className="auth-card"
+          >
             <Stack gap="lg">
               <Group justify="space-between">
                 <div>
                   <Text size="xs" fw={800} tt="uppercase" c="dimmed">
                     Acces securise
                   </Text>
-                  <Title order={2}>{pendingChallenge ? challengeTitle : 'Connexion'}</Title>
+                  <Title order={2}>
+                    {showForgotPassword
+                      ? 'Mot de passe oublie'
+                      : 'Connexion'}
+                  </Title>
                 </div>
                 <ThemeIcon variant="light" color="blue" radius={8}>
-                  {pendingChallenge ? <IconShieldCheck size={20} /> : <IconKey size={20} />}
+                  {showForgotPassword ? (
+                    <IconMail size={20} />
+                  ) : (
+                    <IconKey size={20} />
+                  )}
                 </ThemeIcon>
               </Group>
 
-              {pendingChallenge ? (
-                <Alert icon={<IconDeviceDesktop size={18} />} color="blue" variant="light">
-                  {challengeDescription}
-                </Alert>
-              ) : null}
-
-              {authError ? (
-                <Alert icon={<IconAlertCircle size={18} />} color="red" variant="light">
+              {authError && !showForgotPassword ? (
+                <Alert
+                  icon={<IconAlertCircle size={18} />}
+                  color="red"
+                  variant="light"
+                >
                   {authError}
                 </Alert>
               ) : null}
 
-              <form onSubmit={handleSubmit}>
-                <Stack>
-                  {pendingChallenge ? (
-                    <Box>
-                      <Text size="sm" fw={500} mb={6}>
-                        Code de verification
-                      </Text>
-                      <PinInput length={6} value={challengeCode} onChange={setChallengeCode} inputMode="numeric" />
-                    </Box>
-                  ) : (
-                    <>
-                      <TextInput
-                        label="Telephone ou email"
-                        placeholder="+2250700000000 ou admin@company.com"
-                        value={identifier}
-                        onChange={(event) => setIdentifier(event.currentTarget.value)}
-                        autoComplete="username"
-                        required
-                      />
-                      <PasswordInput
-                        label="Mot de passe"
-                        value={password}
-                        onChange={(event) => setPassword(event.currentTarget.value)}
-                        autoComplete="current-password"
-                        required
-                      />
+              {showForgotPassword ? (
+                <form onSubmit={handlePasswordResetRequest}>
+                  <Stack>
+                    <Text c="dimmed" size="sm">
+                      Saisissez votre email admin pour recevoir le lien et le
+                      code OTP de reinitialisation.
+                    </Text>
+                    <TextInput
+                      label="Email admin"
+                      placeholder="admin@flexmo.app"
+                      type="email"
+                      value={forgotEmail}
+                      onChange={(event) =>
+                        setForgotEmail(event.currentTarget.value)
+                      }
+                      required
+                    />
+                    <Group grow>
+                      <Button
+                        variant="default"
+                        leftSection={<IconArrowLeft size={16} />}
+                        onClick={() => setShowForgotPassword(false)}
+                        type="button"
+                      >
+                        Retour
+                      </Button>
+                      <Button
+                        type="submit"
+                        loading={isSubmittingReset}
+                        disabled={!forgotEmail}
+                      >
+                        Envoyer l&apos;email
+                      </Button>
+                    </Group>
+                  </Stack>
+                </form>
+              ) : (
+                <form onSubmit={handleSubmit}>
+                  <Stack>
+                    <TextInput
+                      label="Email admin"
+                      placeholder="admin@flexmo.app"
+                      type="email"
+                      value={email}
+                      onChange={(event) => setEmail(event.currentTarget.value)}
+                      autoComplete="username"
+                      required
+                    />
+                    <PasswordInput
+                      label="Mot de passe"
+                      value={password}
+                      onChange={(event) =>
+                        setPassword(event.currentTarget.value)
+                      }
+                      autoComplete="current-password"
+                      required
+                    />
+                    <Group justify="space-between" align="center">
                       <Checkbox
                         checked={remember}
-                        onChange={(event) => setRemember(event.currentTarget.checked)}
+                        onChange={(event) =>
+                          setRemember(event.currentTarget.checked)
+                        }
                         label="Garder cette session ouverte sur ce poste"
                       />
-                    </>
-                  )}
+                      <Button
+                        variant="subtle"
+                        px={0}
+                        type="button"
+                        onClick={() => {
+                          setForgotEmail(email);
+                          setShowForgotPassword(true);
+                        }}
+                      >
+                        Mot de passe oublie ?
+                      </Button>
+                    </Group>
 
-                  <Button
-                    type="submit"
-                    rightSection={<IconArrowRight size={17} />}
-                    fullWidth
-                    loading={isLoading}
-                    disabled={pendingChallenge ? challengeCode.length < 4 : !identifier || !password}
-                  >
-                    {pendingChallenge ? 'Valider le code' : 'Se connecter'}
-                  </Button>
-                </Stack>
-              </form>
-
+                    <Button
+                      type="submit"
+                      rightSection={<IconArrowRight size={17} />}
+                      fullWidth
+                      loading={isLoading}
+                      disabled={!email || !password}
+                    >
+                      Se connecter
+                    </Button>
+                  </Stack>
+                </form>
+              )}
             </Stack>
           </Paper>
         </SimpleGrid>

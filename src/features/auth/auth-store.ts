@@ -1,14 +1,19 @@
 import { create } from 'zustand';
 
 import {
-  type AuthMember,
+  clearSession,
+  isRememberedSession,
+  persistSession,
+  readSession,
+  setUnauthorizedHandler,
+} from '@/shared/api/session';
+
+import {
+  type AuthAdmin,
   type AuthResponse,
-  type DevicePayload,
-  authenticateMember,
-  checkMemberSession,
-  logoutMember,
-  verifyDeviceOtp,
-  verifyMfaOnline,
+  authenticateAdmin,
+  checkAdminSession,
+  logoutAdmin,
 } from './auth-api';
 
 interface Operator {
@@ -17,30 +22,16 @@ interface Operator {
   phone: string;
   role: string;
   email?: string;
-  companyName?: string;
 }
 
 interface AuthSession {
   token: string;
-  member: AuthMember;
+  admin: AuthAdmin;
   operator: Operator;
-  permissions: unknown[];
-  isFirstLogin: boolean;
-}
-
-interface PendingChallenge {
-  type: 'mfa' | 'device-otp';
-  token?: string;
-  member?: AuthMember | null;
-  permissions?: unknown[];
-  isFirstLogin?: boolean;
-  memberId?: string;
-  pinId?: string;
-  email?: string;
 }
 
 interface LoginPayload {
-  identifier: string;
+  email: string;
   password: string;
   remember: boolean;
 }
@@ -49,233 +40,85 @@ interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string;
+  admin: AuthAdmin | null;
   operator: Operator | null;
   token: string;
-  permissions: unknown[];
-  pendingChallenge: PendingChallenge | null;
-  login: (payload: LoginPayload) => Promise<'authenticated' | 'mfa' | 'device-otp'>;
-  verifyMfa: (code: string) => Promise<void>;
-  verifyDeviceOtp: (pin: string) => Promise<void>;
+  login: (payload: LoginPayload) => Promise<'authenticated'>;
   restoreSession: () => Promise<void>;
   logout: () => Promise<void>;
+  updateSessionAdmin: (admin: AuthAdmin) => void;
 }
 
-const SESSION_KEY = 'fuel_ops_session';
-const DEVICE_KEY = 'fuel_ops_device_id';
+const readStoredSession = (): AuthSession | null => {
+  const stored = readSession();
+  if (!stored) return null;
 
-const getDeviceId = () => {
-  if (typeof window === 'undefined') return 'server';
+  const admin = stored.admin as AuthAdmin;
 
-  const existing = window.localStorage.getItem(DEVICE_KEY);
-  if (existing) return existing;
-
-  const generated =
-    typeof window.crypto?.randomUUID === 'function'
-      ? window.crypto.randomUUID()
-      : `fuel-ops-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-
-  window.localStorage.setItem(DEVICE_KEY, generated);
-  return generated;
+  return {
+    token: stored.token,
+    admin,
+    operator: mapAdminToOperator(admin),
+  };
 };
 
-const getDevicePayload = (): DevicePayload => ({
-  deviceId: getDeviceId(),
-  deviceName: typeof navigator === 'undefined' ? 'Fuel Ops console' : navigator.userAgent,
-  platform: 'web',
+const getDisplayName =(admin: AuthAdmin) =>
+  admin.fullname || admin.email || admin.phoneNumber || 'Ops';
+
+const mapAdminToOperator = (admin: AuthAdmin): Operator => ({
+  id: admin._id,
+  name: getDisplayName(admin),
+  phone: admin.phoneNumber ?? '',
+  email: admin.email,
+  role: admin.role || 'admin',
 });
 
-const readStoredSession = (): AuthSession | null => {
-  if (typeof window === 'undefined') return null;
-
-  const raw = window.localStorage.getItem(SESSION_KEY) || window.sessionStorage.getItem(SESSION_KEY);
-  if (!raw) return null;
-
-  try {
-    return JSON.parse(raw) as AuthSession;
-  } catch {
-    return null;
-  }
-};
-
-const persistSession = (session: AuthSession, remember = true) => {
-  const storage = remember ? window.localStorage : window.sessionStorage;
-  window.localStorage.removeItem(SESSION_KEY);
-  window.sessionStorage.removeItem(SESSION_KEY);
-  storage.setItem(SESSION_KEY, JSON.stringify(session));
-  storage.setItem('auth_token', session.token);
-};
-
-const clearSession = () => {
-  window.localStorage.removeItem(SESSION_KEY);
-  window.sessionStorage.removeItem(SESSION_KEY);
-  window.localStorage.removeItem('auth_token');
-  window.sessionStorage.removeItem('auth_token');
-};
-
-const getDisplayName = (member: AuthMember) => {
-  const first = member.personalInfos?.firstname ?? '';
-  const last = member.personalInfos?.lastname ?? '';
-  return `${first} ${last}`.trim() || member.personalInfos?.email || member.phoneNumber || 'Ops';
-};
-
 const buildSession = (response: AuthResponse): AuthSession => {
-  if (!response.token || !response.member) {
-    throw new Error(response.message || 'Authentification incomplete.');
+  if (!response.token || !response.admin) {
+    throw new Error(response.message || 'Authentification admin incomplete.');
   }
 
   return {
     token: response.token,
-    member: response.member,
-    permissions: response.permissions ?? [],
-    isFirstLogin: Boolean(response.isFirstLogin),
-    operator: {
-      id: response.member._id,
-      name: getDisplayName(response.member),
-      phone: response.member.phoneNumber ?? '',
-      email: response.member.personalInfos?.email,
-      role: response.member.role?.label || response.member.role?.value || 'Admin',
-      companyName: response.company?.name || response.member.company?.name,
-    },
+    admin: response.admin,
+    operator: mapAdminToOperator(response.admin),
   };
 };
 
-export const useAuthStore = create<AuthState>((set, get) => {
+export const useAuthStore = create<AuthState>((set) => {
   const storedSession = readStoredSession();
 
   return {
     isAuthenticated: Boolean(storedSession),
     isLoading: false,
     error: '',
+    admin: storedSession?.admin ?? null,
     operator: storedSession?.operator ?? null,
     token: storedSession?.token ?? '',
-    permissions: storedSession?.permissions ?? [],
-    pendingChallenge: null,
 
-    login: async ({ identifier, password, remember }) => {
-      set({ isLoading: true, error: '', pendingChallenge: null });
+    login: async ({ email, password, remember }) => {
+      set({ isLoading: true, error: '' });
+
       try {
-        const response = await authenticateMember({
-          identifier,
-          password,
-          device: getDevicePayload(),
-        });
+        const response = await authenticateAdmin({ email, password });
 
         if (!response.success) {
-          throw new Error(response.message || 'Connexion refusee.');
-        }
-
-        if (response.requiresOTP) {
-          set({
-            isLoading: false,
-            pendingChallenge: {
-              type: 'device-otp',
-              memberId: response.memberId,
-              pinId: response.pinId,
-              email: response.email,
-            },
-          });
-          return 'device-otp';
-        }
-
-        if (response.isMFAEnabled) {
-          set({
-            isLoading: false,
-            pendingChallenge: {
-              type: 'mfa',
-              token: response.token,
-              member: response.member,
-              permissions: response.permissions ?? [],
-              isFirstLogin: response.isFirstLogin,
-            },
-          });
-          return 'mfa';
+          throw new Error(response.message || 'Connexion admin refusee.');
         }
 
         const session = buildSession(response);
-        persistSession(session, remember);
+        persistSession({ token: session.token, admin: session.admin }, remember);
         set({
           isAuthenticated: true,
           isLoading: false,
+          admin: session.admin,
           operator: session.operator,
           token: session.token,
-          permissions: session.permissions,
         });
         return 'authenticated';
       } catch (error) {
-        const message = error instanceof Error ? error.message : 'Connexion impossible.';
-        set({ isLoading: false, error: message });
-        throw error;
-      }
-    },
-
-    verifyMfa: async (code) => {
-      const challenge = get().pendingChallenge;
-      if (challenge?.type !== 'mfa' || !challenge.token || !challenge.member) {
-        throw new Error('Aucune verification MFA en attente.');
-      }
-
-      set({ isLoading: true, error: '' });
-      try {
-        const response = await verifyMfaOnline(code, challenge.token);
-        if (!response.success) {
-          throw new Error(response.message || 'Code MFA invalide.');
-        }
-
-        const session = buildSession({
-          success: true,
-          token: challenge.token,
-          member: challenge.member,
-          permissions: challenge.permissions,
-          isFirstLogin: challenge.isFirstLogin,
-        });
-
-        persistSession(session, true);
-        set({
-          isAuthenticated: true,
-          isLoading: false,
-          operator: session.operator,
-          token: session.token,
-          permissions: session.permissions,
-          pendingChallenge: null,
-        });
-      } catch (error) {
-        const message = error instanceof Error ? error.message : 'Verification MFA impossible.';
-        set({ isLoading: false, error: message });
-        throw error;
-      }
-    },
-
-    verifyDeviceOtp: async (pin) => {
-      const challenge = get().pendingChallenge;
-      if (challenge?.type !== 'device-otp' || !challenge.pinId || !challenge.memberId) {
-        throw new Error('Aucune verification appareil en attente.');
-      }
-
-      set({ isLoading: true, error: '' });
-      try {
-        const response = await verifyDeviceOtp({
-          pin,
-          pinId: challenge.pinId,
-          memberId: challenge.memberId,
-          device: getDevicePayload(),
-        });
-
-        if (!response.success) {
-          throw new Error(response.message || 'Code OTP invalide.');
-        }
-
-        const session = buildSession(response);
-        persistSession(session, true);
-        set({
-          isAuthenticated: true,
-          isLoading: false,
-          operator: session.operator,
-          token: session.token,
-          permissions: session.permissions,
-          pendingChallenge: null,
-        });
-      } catch (error) {
-        const message = error instanceof Error ? error.message : 'Verification OTP impossible.';
+        const message =
+          error instanceof Error ? error.message : 'Connexion admin impossible.';
         set({ isLoading: false, error: message });
         throw error;
       }
@@ -286,40 +129,82 @@ export const useAuthStore = create<AuthState>((set, get) => {
       if (!stored?.token) return;
 
       try {
-        const response = await checkMemberSession(stored.token, getDeviceId());
-        if (!response.success) throw new Error(response.message || 'Session invalide.');
+        const response = await checkAdminSession(stored.token);
+        if (!response.success) {
+          throw new Error(response.message || 'Session admin invalide.');
+        }
 
         const session = buildSession({
           ...response,
           token: stored.token,
-          member: response.member ?? stored.member,
+          admin: response.admin ?? stored.admin,
         });
 
-        persistSession(session, true);
+        // On conserve le choix initial de l'admin: une session limitee a
+        // l'onglet ne doit pas devenir persistante apres un simple refresh.
+        persistSession(
+          { token: session.token, admin: session.admin },
+          isRememberedSession()
+        );
         set({
           isAuthenticated: true,
+          admin: session.admin,
           operator: session.operator,
           token: session.token,
-          permissions: session.permissions,
         });
       } catch {
         clearSession();
-        set({ isAuthenticated: false, operator: null, token: '', permissions: [] });
+        set({ isAuthenticated: false, admin: null, operator: null, token: '' });
       }
     },
 
     logout: async () => {
       const current = readStoredSession();
       clearSession();
-      set({ isAuthenticated: false, operator: null, token: '', permissions: [], pendingChallenge: null });
+      set({ isAuthenticated: false, admin: null, operator: null, token: '' });
 
-      if (current?.member?._id && current.token) {
+      if (current?.token) {
         try {
-          await logoutMember(current.member._id, getDeviceId(), current.token);
+          await logoutAdmin(current.token);
         } catch {
-          // La session locale est deja fermee; l'appel serveur est best-effort.
+          // La session locale est deja fermee; l'appel serveur reste best-effort.
         }
       }
     },
+
+    updateSessionAdmin: (admin) => {
+      const current = readStoredSession();
+      if (!current) return;
+
+      const nextSession: AuthSession = {
+        ...current,
+        admin,
+        operator: mapAdminToOperator(admin),
+      };
+
+      persistSession(
+        { token: nextSession.token, admin: nextSession.admin },
+        isRememberedSession()
+      );
+      set({
+        admin: nextSession.admin,
+        operator: nextSession.operator,
+      });
+    },
   };
+});
+
+// Un 401 renvoye par n'importe quel appel API ferme la session localement,
+// ce qui redirige vers /auth/login via RequireAuth.
+setUnauthorizedHandler(() => {
+  if (!useAuthStore.getState().isAuthenticated) return;
+
+  clearSession();
+  useAuthStore.setState({
+    isAuthenticated: false,
+    admin: null,
+    operator: null,
+    token: '',
+    error: 'Votre session a expire. Veuillez vous reconnecter.',
+  });
 });

@@ -18,7 +18,8 @@ export type AppRouteKey =
   | 'fuel'
   | 'cards-balances'
   | 'fuel-finance'
-  | 'incidents';
+  | 'incidents'
+  | 'admins';
 
 export interface NavItem {
   key: AppRouteKey;
@@ -26,6 +27,7 @@ export interface NavItem {
   href: string;
   description: string;
   icon: LucideIcon;
+  superadminOnly?: boolean;
 }
 
 export const INTERNAL_NAV_ITEMS: NavItem[] = [
@@ -84,5 +86,13 @@ export const INTERNAL_NAV_ITEMS: NavItem[] = [
     href: '/incidents',
     description: 'Support et anomalies',
     icon: AlertTriangle,
+  },
+  {
+    key: 'admins',
+    label: 'Admins',
+    href: '/admins',
+    description: 'Gestion des comptes admin',
+    icon: Users,
+    superadminOnly: true,
   },
 ];
