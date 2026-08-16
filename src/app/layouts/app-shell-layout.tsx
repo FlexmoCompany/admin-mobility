@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
   ActionIcon,
   AppShell,
@@ -20,6 +20,7 @@ import {
   IconChevronDown,
   IconLogout,
   IconMoon,
+  IconSettings,
   IconRefresh,
   IconShieldCheck,
   IconSun,
@@ -37,17 +38,25 @@ const getRouteKeyFromPathname = (pathname: string) => {
 };
 
 export function AppShellLayout() {
+  const navigate = useNavigate();
   const location = useLocation();
   const [mobileOpened, { toggle: toggleMobile, close: closeMobile }] = useDisclosure();
   const { colorScheme, setColorScheme } = useMantineColorScheme();
   const setActiveRoute = useUiStore((state) => state.setActiveRoute);
   const operator = useAuthStore((state) => state.operator);
   const logout = useAuthStore((state) => state.logout);
+  const visibleNavItems = useMemo(
+    () =>
+      INTERNAL_NAV_ITEMS.filter(
+        (item) => !item.superadminOnly || operator?.role === 'superadmin'
+      ),
+    [operator?.role]
+  );
 
   const activePath = location.pathname;
   const activeItem = useMemo(
-    () => INTERNAL_NAV_ITEMS.find((item) => activePath.startsWith(item.href)),
-    [activePath]
+    () => visibleNavItems.find((item) => activePath.startsWith(item.href)),
+    [activePath, visibleNavItems]
   );
 
   useEffect(() => {
@@ -74,10 +83,10 @@ export function AppShellLayout() {
             <Burger opened={mobileOpened} onClick={toggleMobile} hiddenFrom="md" size="sm" />
             <div>
               <Text size="xs" c="dimmed" fw={700} tt="uppercase">
-                Fuel Ops / {activeItem?.label ?? 'Cockpit'}
+                Fuel Ops / {activePath.startsWith('/my-account') ? 'Mon compte' : activeItem?.label ?? 'Cockpit'}
               </Text>
               <Title order={3} className="header-title">
-                {activeItem?.label ?? 'Cockpit'}
+                {activePath.startsWith('/my-account') ? 'Mon compte' : activeItem?.label ?? 'Cockpit'}
               </Title>
             </div>
           </Group>
@@ -123,6 +132,12 @@ export function AppShellLayout() {
               </Menu.Target>
               <Menu.Dropdown>
                 <Menu.Label>Session</Menu.Label>
+                <Menu.Item
+                  leftSection={<IconSettings size={16} />}
+                  onClick={() => navigate('/my-account')}
+                >
+                  Mon compte
+                </Menu.Item>
                 <Menu.Item leftSection={<IconLogout size={16} />} onClick={logout}>
                   Se deconnecter
                 </Menu.Item>
@@ -133,7 +148,7 @@ export function AppShellLayout() {
       </AppShell.Header>
 
       <AppShell.Navbar className="admin-navbar">
-        <Sidebar items={INTERNAL_NAV_ITEMS} activePath={activePath} />
+        <Sidebar items={visibleNavItems} activePath={activePath} />
       </AppShell.Navbar>
 
       <AppShell.Main className="admin-main">
