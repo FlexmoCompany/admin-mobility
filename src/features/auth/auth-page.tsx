@@ -2,10 +2,8 @@ import { useMemo, useState, type FormEvent } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import {
   Alert,
-  Badge,
   Box,
   Button,
-  Card,
   Checkbox,
   Container,
   Group,
@@ -28,16 +26,8 @@ import {
   IconMail,
 } from '@tabler/icons-react';
 
-import { runtimeConfig } from '@/shared/api/config';
-
 import { requestPasswordReset } from './auth-api';
 import { useAuthStore } from './auth-store';
-
-const authFacts = [
-  { label: 'Contrat backend', value: 'admin/auth' },
-  { label: 'Session', value: 'JWT 24h web' },
-  { label: 'Acces produit', value: runtimeConfig.product },
-];
 
 export function AuthPage() {
   const navigate = useNavigate();
@@ -66,7 +56,7 @@ export function AuthPage() {
     notifications.show({
       color: 'green',
       title: 'Session ouverte',
-      message: 'Authentification admin validee par tiers-service.',
+      message: 'Bienvenue sur la console FlexMo Fuel Ops.',
     });
     navigate(from, { replace: true });
   };
@@ -145,30 +135,16 @@ export function AuthPage() {
             </Group>
 
             <div>
-              <Badge variant="light" color="blue" mb="sm">
-                Auth tiers-service
-              </Badge>
               <Title order={1} className="auth-title">
-                Connexion backoffice
+                Bienvenue
               </Title>
               <Text c="dimmed" size="lg" maw={600} mt="md">
-                Utilisez votre compte administrateur global. Le backend valide
-                l&apos;email, le mot de passe et le token JWT de session admin.
+                Connectez-vous avec votre compte administrateur FlexMo pour
+                acceder au suivi des cartes, des conducteurs et des achats
+                carburant.
               </Text>
             </div>
 
-            <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="sm">
-              {authFacts.map((item) => (
-                <Card key={item.label} withBorder radius="md" padding="md">
-                  <Text size="xs" c="dimmed" fw={700}>
-                    {item.label}
-                  </Text>
-                  <Text size="sm" fw={760} mt={4}>
-                    {item.value}
-                  </Text>
-                </Card>
-              ))}
-            </SimpleGrid>
           </Stack>
 
           <Paper
@@ -213,8 +189,8 @@ export function AuthPage() {
                 <form onSubmit={handlePasswordResetRequest}>
                   <Stack>
                     <Text c="dimmed" size="sm">
-                      Saisissez votre email admin pour recevoir le lien et le
-                      code OTP de reinitialisation.
+                      Saisissez votre email pour recevoir un lien et un code de
+                      verification.
                     </Text>
                     <TextInput
                       label="Email admin"
