@@ -56,13 +56,16 @@ export async function requestJson<T>(
 
   const response = await fetch(buildUrl(service, path, query), {
     ...init,
+    // `cache: 'no-store'` suffit a empecher toute mise en cache par le
+    // navigateur. Les en-tetes de requete `Cache-Control` et `Pragma` ne
+    // servaient qu'aux caches intermediaires — il n'y en a aucun devant la
+    // passerelle — et forcaient le prevol a les autoriser explicitement,
+    // ce qui bloquait toutes les requetes en production.
     cache: 'no-store',
     headers: {
       'Content-Type': 'application/json',
       Env: runtimeConfig.env,
       product: runtimeConfig.product,
-      'Cache-Control': 'no-store',
-      Pragma: 'no-cache',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...headers,
     },
