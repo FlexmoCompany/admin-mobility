@@ -90,3 +90,39 @@ export type CockpitAllocationItem = Pick<
   accountId?: string;
   driverId?: string;
 };
+
+/** Un jour de la courbe de volume, y compris les jours sans achat. */
+export interface CockpitDailyPoint {
+  date: string;
+  label: string;
+  liters: number;
+  amount: number;
+  transactions: number;
+}
+
+/** Part d'une station ou d'un produit dans le volume de la periode. */
+export interface CockpitBreakdownSlice {
+  name: string;
+  liters: number;
+  amount: number;
+  transactions: number;
+}
+
+export interface CockpitAllocationSlice {
+  name: string;
+  value: number;
+  color: string;
+}
+
+export interface CockpitAnalytics {
+  windowDays: number;
+  startDate: string;
+  endDate: string;
+  series: CockpitDailyPoint[];
+  stations: CockpitBreakdownSlice[];
+  products: CockpitBreakdownSlice[];
+  allocations: CockpitAllocationSlice[];
+  totalPurchases: number;
+  /** Vrai quand la periode contient plus d'achats que la page n'en ramene. */
+  truncated: boolean;
+}
