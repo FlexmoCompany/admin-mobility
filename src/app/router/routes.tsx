@@ -2,6 +2,8 @@ import { Navigate, createBrowserRouter } from 'react-router-dom';
 
 import { AppShellLayout } from '@/app/layouts/app-shell-layout';
 import { AdminsPage } from '@/features/admins/components/admins-page';
+import { AppVersionsPage } from '@/features/app-versions/components/app-versions-page';
+import { MobilityConfigPage } from '@/features/mobility-config/components/mobility-config-page';
 import { MyAccountPage } from '@/features/admins/components/my-account-page';
 import { AuthPage } from '@/features/auth/auth-page';
 import { RequireAuth } from '@/features/auth/require-auth';
@@ -99,6 +101,26 @@ export const appRouter = createBrowserRouter([
         element: (
           <RequireSuperadmin>
             <AdminsPage />
+          </RequireSuperadmin>
+        ),
+      },
+      {
+        path: '/agents/settings',
+        element: <Navigate to="/mobility-config" replace />,
+      },
+      {
+        path: '/mobility-config',
+        element: (
+          <RequireSuperadmin>
+            <MobilityConfigPage />
+          </RequireSuperadmin>
+        ),
+      },
+      {
+        path: '/app-versions',
+        element: (
+          <RequireSuperadmin>
+            <AppVersionsPage />
           </RequireSuperadmin>
         ),
       },

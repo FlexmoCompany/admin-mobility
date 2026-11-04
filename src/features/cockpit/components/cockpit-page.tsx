@@ -35,6 +35,8 @@ import {
   IconUsers,
 } from '@tabler/icons-react';
 
+import { getCockpitCashbackTotals } from '@/features/mobility-config/api';
+
 import { getCockpitSummary, listCockpitSignals } from '../api/cockpit-api';
 import { ANALYTICS_WINDOW_DAYS, getCockpitAnalytics } from '../api/cockpit-analytics';
 import type {
@@ -254,9 +256,15 @@ export function CockpitPage() {
     queryFn: () => getCockpitAnalytics(),
   });
 
+  const cashbackQuery = useQuery({
+    queryKey: ['cockpit', 'cashback-totals'],
+    queryFn: getCockpitCashbackTotals,
+  });
+
   const signals = signalsQuery.data?.data?.items ?? [];
   const summary = summaryQuery.data;
   const analytics = analyticsQuery.data;
+  const cashback = cashbackQuery.data;
 
   const windowTotals = useMemo(() => {
     const series = analytics?.series ?? [];
@@ -299,6 +307,48 @@ export function CockpitPage() {
           Vue operationnelle des signaux carburant, conducteurs et allocations.
         </Text>
       </div>
+
+      <Stack gap="xs">
+        <Group gap="xs">
+          <Text size="sm" fw={700}>
+            FlexMo × TotalEnergies
+          </Text>
+          <Badge
+            color={cashbackQuery.isError ? 'orange' : 'teal'}
+            variant="light"
+            size="sm"
+          >
+            {cashbackQuery.isError ? 'indisponible' : 'ledger'}
+          </Badge>
+        </Group>
+        <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="md">
+          <Metric
+            label="Reçu Total (snapshot)"
+            value={formatCurrency(cashback?.totalReceivedFromPartner)}
+            hint={
+              cashback?.liters
+                ? `${formatNumber(cashback.liters, 1)} L cumulés`
+                : 'Somme des achats ledger'
+            }
+            icon={<IconGasStation size={16} />}
+            color="teal"
+          />
+          <Metric
+            label="Différentiel FlexMo"
+            value={formatCurrency(cashback?.flexmoSubsidy)}
+            hint="Négatif = FlexMo finance"
+            icon={<IconScale size={16} />}
+            color="indigo"
+          />
+          <Metric
+            label="Cashback versé chauffeur"
+            value={formatCurrency(cashback?.driverBonusPaid)}
+            hint="Cumul bonus snapshot"
+            icon={<IconUsers size={16} />}
+            color="teal"
+          />
+        </SimpleGrid>
+      </Stack>
 
       {summaryQuery.isError || signalsQuery.isError ? (
         <Alert

@@ -7,7 +7,9 @@ import {
   CreditCard,
   Fuel,
   LayoutDashboard,
+  Package,
   Users,
+  Settings2,
 } from 'lucide-react';
 
 export type AppRouteKey =
@@ -19,7 +21,9 @@ export type AppRouteKey =
   | 'cards-balances'
   | 'fuel-finance'
   | 'incidents'
-  | 'admins';
+  | 'admins'
+  | 'mobility-config'
+  | 'app-versions';
 
 export interface NavItem {
   key: AppRouteKey;
@@ -93,6 +97,22 @@ export const INTERNAL_NAV_ITEMS: NavItem[] = [
     href: '/admins',
     description: 'Gestion des comptes admin',
     icon: Users,
+    superadminOnly: true,
+  },
+  {
+    key: 'mobility-config',
+    label: 'Config Mobility',
+    href: '/mobility-config',
+    description: 'Cashback, paliers, parrainage',
+    icon: Settings2,
+    superadminOnly: true,
+  },
+  {
+    key: 'app-versions',
+    label: 'Versions app',
+    href: '/app-versions',
+    description: 'APK OTP Pay et changelog',
+    icon: Package,
     superadminOnly: true,
   },
 ];

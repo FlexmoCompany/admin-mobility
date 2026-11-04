@@ -42,6 +42,7 @@ textarea {
 .admin-navbar {
   border-right: 1px solid light-dark(#dfe4ec, #242b36);
   background: light-dark(#ffffff, #111822);
+  overflow: hidden;
 }
 
 .admin-main {

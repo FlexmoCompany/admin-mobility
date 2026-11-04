@@ -202,6 +202,90 @@ export function FuelPurchaseDetailPage() {
           </Table.Tbody>
         </Table>
       </Card>
+
+      {purchase.tierLedgerApplied ? (
+        <Card withBorder radius="md" padding="lg">
+          <Title order={4} mb="md">
+            Snapshot paliers
+          </Title>
+          <Table mb="md">
+            <Table.Tbody>
+              <Table.Tr>
+                <Table.Th>Palier</Table.Th>
+                <Table.Td>P{purchase.tierIndex ?? '-'}</Table.Td>
+              </Table.Tr>
+              <Table.Tr>
+                <Table.Th>Cumul litres</Table.Th>
+                <Table.Td>
+                  {purchase.cumulativeLitersBefore ?? 0} → {purchase.cumulativeLitersAfter ?? 0}
+                </Table.Td>
+              </Table.Tr>
+              <Table.Tr>
+                <Table.Th>Prix ref / produit</Table.Th>
+                <Table.Td>
+                  {formatCurrency(purchase.refPricePerLiter ?? undefined)} ({purchase.productKey || '-'}
+                  )
+                </Table.Td>
+              </Table.Tr>
+              <Table.Tr>
+                <Table.Th>Reçu Total / L</Table.Th>
+                <Table.Td>{formatCurrency(purchase.totalReceivedPerLiter ?? undefined)}</Table.Td>
+              </Table.Tr>
+              <Table.Tr>
+                <Table.Th>Diff FlexMo / L</Table.Th>
+                <Table.Td>{formatCurrency(purchase.flexmoDiffPerLiter ?? undefined)}</Table.Td>
+              </Table.Tr>
+              <Table.Tr>
+                <Table.Th>Bonus chauffeur / L</Table.Th>
+                <Table.Td>{formatCurrency(purchase.driverBonusPerLiter ?? undefined)}</Table.Td>
+              </Table.Tr>
+              <Table.Tr>
+                <Table.Th>Reçu Total (montant)</Table.Th>
+                <Table.Td>{formatCurrency(purchase.totalReceivedAmount ?? undefined)}</Table.Td>
+              </Table.Tr>
+              <Table.Tr>
+                <Table.Th>Subvention FlexMo</Table.Th>
+                <Table.Td>{formatCurrency(purchase.flexmoSubsidyAmount ?? undefined)}</Table.Td>
+              </Table.Tr>
+              <Table.Tr>
+                <Table.Th>Bonus chauffeur</Table.Th>
+                <Table.Td>{formatCurrency(purchase.driverBonusAmount ?? undefined)}</Table.Td>
+              </Table.Tr>
+            </Table.Tbody>
+          </Table>
+          {(purchase.segments?.length ?? 0) > 1 ? (
+            <>
+              <Title order={5} mb="sm">
+                Segments multi-paliers
+              </Title>
+              <Table>
+                <Table.Thead>
+                  <Table.Tr>
+                    <Table.Th>Palier</Table.Th>
+                    <Table.Th>Litres</Table.Th>
+                    <Table.Th>Taux</Table.Th>
+                    <Table.Th>Reçu Total</Table.Th>
+                    <Table.Th>Diff FlexMo</Table.Th>
+                    <Table.Th>Bonus</Table.Th>
+                  </Table.Tr>
+                </Table.Thead>
+                <Table.Tbody>
+                  {purchase.segments?.map((s, i) => (
+                    <Table.Tr key={i}>
+                      <Table.Td>P{s.tierIndex}</Table.Td>
+                      <Table.Td>{s.liters}</Table.Td>
+                      <Table.Td>{s.ratePct}%</Table.Td>
+                      <Table.Td>{formatCurrency(s.totalReceivedAmount)}</Table.Td>
+                      <Table.Td>{formatCurrency(s.flexmoSubsidyAmount)}</Table.Td>
+                      <Table.Td>{formatCurrency(s.driverBonusAmount)}</Table.Td>
+                    </Table.Tr>
+                  ))}
+                </Table.Tbody>
+              </Table>
+            </>
+          ) : null}
+        </Card>
+      ) : null}
     </Stack>
   );
 }
