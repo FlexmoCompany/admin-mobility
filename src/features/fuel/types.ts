@@ -87,7 +87,8 @@ export interface FuelPurchaseStatisticsResponse {
     totalLiters: number;
     totalDiscount: number;
     totalCashback: number;
-    flexmoRevenue: number;
+    totalReceivedFromPartner: number;
+    flexmoSubsidy: number;
     completedCount: number;
     pendingCount: number;
     failedCount: number;

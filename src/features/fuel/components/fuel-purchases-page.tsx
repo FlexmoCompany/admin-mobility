@@ -101,37 +101,37 @@ export function FuelPurchasesPage() {
       <SimpleGrid cols={{ base: 1, md: 4 }} spacing="md">
         <Card withBorder radius="md" padding="lg">
           <Text size="xs" c="dimmed" fw={700}>
-            Montant total
+            Cashback conducteur
           </Text>
           <Text fw={800} size="xl" mt={4}>
-            {formatCurrency(stats?.totalVolume)}
+            {formatCurrency(stats?.totalCashback)}
           </Text>
         </Card>
         <Card withBorder radius="md" padding="lg">
           <Text size="xs" c="dimmed" fw={700}>
-            Volume total
+            Reçu Total
+          </Text>
+          <Text fw={800} size="xl" mt={4}>
+            {formatCurrency(stats?.totalReceivedFromPartner)}
+          </Text>
+        </Card>
+        <Card withBorder radius="md" padding="lg">
+          <Text size="xs" c="dimmed" fw={700}>
+            Écart FlexMo
+          </Text>
+          <Text fw={800} size="xl" mt={4}>
+            {formatCurrency(stats?.flexmoSubsidy)}
+          </Text>
+        </Card>
+        <Card withBorder radius="md" padding="lg">
+          <Text size="xs" c="dimmed" fw={700}>
+            Volume + transactions
           </Text>
           <Text fw={800} size="xl" mt={4}>
             {stats?.totalLiters ?? 0} L
           </Text>
-        </Card>
-        <Card withBorder radius="md" padding="lg">
-          <Text size="xs" c="dimmed" fw={700}>
-            Remise totale
-          </Text>
-          <Text fw={800} size="xl" mt={4}>
-            {formatCurrency(stats?.totalDiscount)}
-          </Text>
-        </Card>
-        <Card withBorder radius="md" padding="lg">
-          <Text size="xs" c="dimmed" fw={700}>
-            Transactions + taux de succes
-          </Text>
-          <Text fw={800} size="xl" mt={4}>
-            {stats?.totalTransactions ?? 0}
-          </Text>
           <Text size="sm" c="dimmed" mt={4}>
-            {stats?.successRate ?? 0}% de succes
+            {stats?.totalTransactions ?? 0} tx · {stats?.successRate ?? 0}% succès
           </Text>
         </Card>
       </SimpleGrid>
@@ -181,7 +181,7 @@ export function FuelPurchasesPage() {
           />
         </Group>
 
-        <Table.ScrollContainer minWidth={1080} mt="md">
+        <Table.ScrollContainer minWidth={1280} mt="md">
           <Table striped highlightOnHover>
             <Table.Thead>
               <Table.Tr>
@@ -190,9 +190,10 @@ export function FuelPurchasesPage() {
                 <Table.Th>Station</Table.Th>
                 <Table.Th>Produit</Table.Th>
                 <Table.Th>Litres</Table.Th>
-                <Table.Th>Prix unitaire</Table.Th>
-                <Table.Th>Montant total</Table.Th>
+                <Table.Th>Montant</Table.Th>
                 <Table.Th>Cashback</Table.Th>
+                <Table.Th>Reçu Total</Table.Th>
+                <Table.Th>Écart FlexMo</Table.Th>
                 <Table.Th>Statut</Table.Th>
                 <Table.Th>Source</Table.Th>
                 <Table.Th>Reference</Table.Th>
@@ -215,9 +216,12 @@ export function FuelPurchasesPage() {
                   <Table.Td>{purchase.station || '-'}</Table.Td>
                   <Table.Td>{purchase.product || '-'}</Table.Td>
                   <Table.Td>{purchase.volume ?? purchase.liters ?? 0}</Table.Td>
-                  <Table.Td>{formatCurrency(purchase.unitPrice)}</Table.Td>
                   <Table.Td>{formatCurrency(purchase.totalAmount)}</Table.Td>
-                  <Table.Td>{formatCurrency(purchase.driverCashback)}</Table.Td>
+                  <Table.Td>
+                    {formatCurrency(purchase.driverBonusAmount ?? purchase.driverCashback)}
+                  </Table.Td>
+                  <Table.Td>{formatCurrency(purchase.totalReceivedAmount ?? undefined)}</Table.Td>
+                  <Table.Td>{formatCurrency(purchase.flexmoSubsidyAmount ?? undefined)}</Table.Td>
                   <Table.Td>
                     <Badge color={badgeColorByStatus[purchase.status ?? 'pending']} variant="light">
                       {purchase.status ?? 'pending'}
@@ -236,7 +240,7 @@ export function FuelPurchasesPage() {
               ))}
               {purchases.length === 0 && !purchasesQuery.isLoading ? (
                 <Table.Tr>
-                  <Table.Td colSpan={12}>
+                  <Table.Td colSpan={13}>
                     <Text c="dimmed">Aucun achat carburant trouve.</Text>
                   </Table.Td>
                 </Table.Tr>
