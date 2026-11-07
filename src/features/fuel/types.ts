@@ -57,6 +57,16 @@ export interface FuelPurchaseRecord {
     flexmoSubsidyAmount: number;
     driverBonusAmount: number;
   }>;
+  ruleApplications?: {
+    liter?: {
+      version?: number;
+      result?: {amountCents?: number; liters?: number};
+    } | null;
+    tier?: {
+      version?: number;
+      result?: {amountCents?: number; ratePct?: number};
+    } | null;
+  };
   status?: FuelPurchaseStatus;
   source?: FuelPurchaseSource | string;
   paymentMethod?: string | null;

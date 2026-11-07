@@ -111,7 +111,8 @@ export function FuelFinancePage() {
       <div>
         <Title order={2}>Finance carburant</Title>
         <Text c="dimmed" mt={4}>
-          Marge, remises et cashback calcules sur les achats carburant historises.
+          Cashback = charge FlexMo (20 F/L). Reçu partenaire = palier Total. Subvention /
+          revenu net = écart (Total − bonus). Total ne paie pas une part des 20 F.
         </Text>
       </div>
 

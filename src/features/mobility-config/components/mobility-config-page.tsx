@@ -2,9 +2,11 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
+  Badge,
   Button,
   Card,
   Group,
+  Modal,
   NumberInput,
   Stack,
   Table,
@@ -16,6 +18,7 @@ import { notifications } from '@mantine/notifications';
 
 import {
   getMobilityConfig,
+  listRuleVersions,
   listTierTransitions,
   putAgentConfig,
   putCashbackConfig,
@@ -34,11 +37,16 @@ function toastErr(error: Error) {
 function CashbackTab() {
   const queryClient = useQueryClient();
   const query = useQuery({ queryKey: ['mobility-config'], queryFn: getMobilityConfig });
+  const versionsQuery = useQuery({
+    queryKey: ['rule-versions', 'cashback_liter'],
+    queryFn: () => listRuleVersions('cashback_liter'),
+  });
   const [bonus, setBonus] = useState<number | string>(20);
   const [minPayout, setMinPayout] = useState<number | string>(5000);
   const [gasoil, setGasoil] = useState<number | string>(725);
   const [essence, setEssence] = useState<number | string>(905);
   const [tiers, setTiers] = useState<MobilityTier[]>([]);
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   useEffect(() => {
     const c = query.data?.config?.cashback;
@@ -67,7 +75,9 @@ function CashbackTab() {
       }),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['mobility-config'] });
-      toastOk('Cashback & paliers enregistrés');
+      void queryClient.invalidateQueries({ queryKey: ['rule-versions'] });
+      setConfirmOpen(false);
+      toastOk('Versions publiées (cashback / paliers / seuil)');
     },
     onError: toastErr,
   });
@@ -76,13 +86,22 @@ function CashbackTab() {
     setTiers((prev) => prev.map((t, idx) => (idx === i ? { ...t, ...patch } : t)));
   };
 
+  const rv = query.data?.ruleVersions;
+  const literV = rv?.cashback_liter?.version;
+  const tierV = rv?.cashback_tier?.version;
+  const thrV = rv?.bonus_threshold?.version;
+
   return (
     <Card withBorder maw={720}>
       <Stack>
         <Text size="sm" c="dimmed">
-          Prix de référence Total, bonus chauffeur garanti (F/L), seuil de reversement et paliers
-          de taux.
+          Publier crée des versions N+1. Les pleins passés restent collés à N.
         </Text>
+        <Group gap="xs">
+          <Badge variant="light">cashback_liter v{literV ?? '-'}</Badge>
+          <Badge variant="light">cashback_tier v{tierV ?? '-'}</Badge>
+          <Badge variant="light">bonus_threshold v{thrV ?? '-'}</Badge>
+        </Group>
         <Group grow>
           <NumberInput label="Bonus chauffeur (F/L)" min={0} value={bonus} onChange={setBonus} />
           <NumberInput
@@ -153,13 +172,54 @@ function CashbackTab() {
           </Button>
           <Button
             loading={save.isPending}
-            onClick={() => save.mutate()}
+            onClick={() => setConfirmOpen(true)}
             disabled={query.isLoading}
           >
-            Enregistrer
+            Publier
           </Button>
         </Group>
+        <Title order={5}>Historique cashback_liter</Title>
+        <Table>
+          <Table.Thead>
+            <Table.Tr>
+              <Table.Th>Version</Table.Th>
+              <Table.Th>Valide de</Table.Th>
+              <Table.Th>Valide à</Table.Th>
+            </Table.Tr>
+          </Table.Thead>
+          <Table.Tbody>
+            {(versionsQuery.data?.items ?? []).map((row) => (
+              <Table.Tr key={row._id}>
+                <Table.Td>v{row.version}</Table.Td>
+                <Table.Td>{new Date(row.validFrom).toLocaleString('fr-FR')}</Table.Td>
+                <Table.Td>
+                  {row.validTo ? new Date(row.validTo).toLocaleString('fr-FR') : 'ouverte'}
+                </Table.Td>
+              </Table.Tr>
+            ))}
+          </Table.Tbody>
+        </Table>
       </Stack>
+      <Modal
+        opened={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        title="Publier cashback & paliers"
+        centered
+      >
+        <Stack>
+          <Text size="sm">
+            Bonus {bonus} F/L · seuil {minPayout} XOF · {tiers.length} palier(s). validFrom = maintenant.
+          </Text>
+          <Group justify="flex-end">
+            <Button variant="default" onClick={() => setConfirmOpen(false)}>
+              Annuler
+            </Button>
+            <Button loading={save.isPending} onClick={() => save.mutate()}>
+              Confirmer la publication
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
     </Card>
   );
 }
@@ -389,7 +449,8 @@ export function MobilityConfigPage() {
       <div>
         <Title order={2}>Config Mobility</Title>
         <Text c="dimmed" size="sm">
-          Paramètres éditables sans redeploy — un domaine par onglet.
+          Cashback / parrainage / welcome : publication de versions (passé figé). Agents :
+          config hors livre.
         </Text>
       </div>
       <Tabs defaultValue="cashback">

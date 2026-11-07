@@ -10,6 +10,7 @@ import {
   Package,
   Users,
   Settings2,
+  Wallet,
 } from 'lucide-react';
 
 export type AppRouteKey =
@@ -20,6 +21,7 @@ export type AppRouteKey =
   | 'fuel'
   | 'cards-balances'
   | 'fuel-finance'
+  | 'treasury'
   | 'incidents'
   | 'admins'
   | 'mobility-config'
@@ -83,6 +85,14 @@ export const INTERNAL_NAV_ITEMS: NavItem[] = [
     href: '/fuel-finance',
     description: 'Flux finances lies au carburant',
     icon: Activity,
+  },
+  {
+    key: 'treasury',
+    label: 'Trésorerie',
+    href: '/treasury',
+    description: 'Appro, encaissement, sweep',
+    icon: Wallet,
+    superadminOnly: true,
   },
   {
     key: 'incidents',

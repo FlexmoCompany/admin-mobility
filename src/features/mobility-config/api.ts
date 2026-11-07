@@ -45,19 +45,50 @@ export interface CockpitCashbackTotals {
   mock: boolean;
 }
 
+export interface RuleVersionMeta {
+  version: number;
+  validFrom: string;
+  validTo: string | null;
+}
+
+export type RuleVersionsMap = Partial<
+  Record<
+    'cashback_liter' | 'cashback_tier' | 'bonus_threshold' | 'referral' | 'welcome',
+    RuleVersionMeta | null
+  >
+>;
+
+export interface RuleVersionRow {
+  _id: string;
+  type: string;
+  version: number;
+  validFrom: string;
+  validTo: string | null;
+  body: Record<string, unknown>;
+}
+
 export function getMobilityConfig() {
-  return requestJson<{ success: boolean; config: MobilityConfig }>(
+  return requestJson<{
+    success: boolean;
+    config: MobilityConfig;
+    ruleVersions?: RuleVersionsMap;
+  }>('tiersService', '/admin/mobility-config');
+}
+
+export function listRuleVersions(type?: string) {
+  return requestJson<{ success: boolean; items: RuleVersionRow[] }>(
     'tiersService',
-    '/admin/mobility-config'
+    '/admin/rules',
+    { query: type ? { type } : undefined }
   );
 }
 
 export function putCashbackConfig(body: MobilityConfig['cashback']) {
-  return requestJson<{ success: boolean; config: MobilityConfig }>(
-    'tiersService',
-    '/admin/mobility-config/cashback',
-    { method: 'PUT', body }
-  );
+  return requestJson<{
+    success: boolean;
+    config: MobilityConfig;
+    published?: unknown;
+  }>('tiersService', '/admin/mobility-config/cashback', { method: 'PUT', body });
 }
 
 export function putReferralConfig(body: MobilityConfig['referral']) {

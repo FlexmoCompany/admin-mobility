@@ -203,6 +203,60 @@ export function FuelPurchaseDetailPage() {
         </Table>
       </Card>
 
+      {(() => {
+        const bonusXof =
+          purchase.driverBonusAmount ??
+          (purchase.ruleApplications?.liter?.result?.amountCents != null
+            ? purchase.ruleApplications.liter.result.amountCents / 100
+            : null);
+        const receivedXof =
+          purchase.totalReceivedAmount ??
+          (purchase.ruleApplications?.tier?.result?.amountCents != null
+            ? purchase.ruleApplications.tier.result.amountCents / 100
+            : null);
+        const resultXof =
+          bonusXof != null && receivedXof != null
+            ? Math.round((receivedXof - bonusXof) * 100) / 100
+            : purchase.flexmoSubsidyAmount != null
+              ? Math.round((-purchase.flexmoSubsidyAmount) * 100) / 100
+              : null;
+        const hasMarge = bonusXof != null || receivedXof != null;
+        if (!hasMarge) return null;
+        return (
+          <Card withBorder radius="md" padding="lg">
+            <Title order={4} mb="xs">
+              Marge de ce plein
+            </Title>
+            <Text size="sm" c="dimmed" mb="md">
+              Total ne paie pas les 20 F ; il reverse un palier à part. FlexMo doit toujours le bonus
+              chauffeur.
+            </Text>
+            <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="md">
+              <Card withBorder padding="md">
+                <Text size="xs" c="dimmed">
+                  Bonus chauffeur (FlexMo)
+                </Text>
+                <Text fw={700}>{formatCurrency(bonusXof ?? undefined)}</Text>
+              </Card>
+              <Card withBorder padding="md">
+                <Text size="xs" c="dimmed">
+                  Reçu Total (palier)
+                </Text>
+                <Text fw={700}>{formatCurrency(receivedXof ?? undefined)}</Text>
+              </Card>
+              <Card withBorder padding="md">
+                <Text size="xs" c="dimmed">
+                  Résultat FlexMo
+                </Text>
+                <Text fw={700} c={resultXof == null ? undefined : resultXof >= 0 ? 'teal' : 'red'}>
+                  {formatCurrency(resultXof ?? undefined)}
+                </Text>
+              </Card>
+            </SimpleGrid>
+          </Card>
+        );
+      })()}
+
       {purchase.tierLedgerApplied ? (
         <Card withBorder radius="md" padding="lg">
           <Title order={4} mb="md">

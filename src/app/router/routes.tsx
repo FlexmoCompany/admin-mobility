@@ -16,6 +16,7 @@ import { FuelPurchaseDetailPage } from '@/features/fuel/components/fuel-purchase
 import { FuelPurchasesPage } from '@/features/fuel/components/fuel-purchases-page';
 import { CockpitPage } from '@/features/cockpit/components/cockpit-page';
 import { FuelFinancePage } from '@/features/fuel-finance/components/fuel-finance-page';
+import { TreasuryPage } from '@/features/treasury/components/treasury-page';
 import { IncidentsPage } from '@/features/incidents/components/incidents-page';
 import { PartnerDetailPage } from '@/features/partners/components/partner-detail-page';
 import { PartnersPage } from '@/features/partners/components/partners-page';
@@ -91,6 +92,14 @@ export const appRouter = createBrowserRouter([
       {
         path: '/fuel-finance',
         element: <FuelFinancePage />,
+      },
+      {
+        path: '/treasury',
+        element: (
+          <RequireSuperadmin>
+            <TreasuryPage />
+          </RequireSuperadmin>
+        ),
       },
       {
         path: '/incidents',
