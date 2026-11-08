@@ -26,7 +26,9 @@ export async function getFuelFinanceOverview(
   const stats = response.data;
 
   const volumeLiters = stats?.totalLiters ?? 0;
-  const flexmoRevenueNet = stats?.flexmoRevenue ?? 0;
+  // Marge = reçu Total − cashback chauffeur (pas de champ flexmoRevenue API).
+  const flexmoRevenueNet =
+    (stats?.totalReceivedFromPartner ?? 0) - (stats?.totalCashback ?? 0);
 
   return {
     // `totalVolume` porte le montant total cote backend, `totalLiters` le volume.
