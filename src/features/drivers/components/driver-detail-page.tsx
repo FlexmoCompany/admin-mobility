@@ -40,14 +40,15 @@ import {
   updateDriverStatus,
 } from '../api/drivers-api';
 import { DriverFormModal } from './driver-form-modal';
-import type {
-  DriverFuelPurchase,
-  DriverRecord,
-  DriverStatus,
-  DriverVehicle,
-  FuelCardCreationStatus,
-  FuelCardStatus,
-  UpdateDriverPayload,
+import {
+  labelVehicleType,
+  type DriverFuelPurchase,
+  type DriverRecord,
+  type DriverStatus,
+  type DriverVehicle,
+  type FuelCardCreationStatus,
+  type FuelCardStatus,
+  type UpdateDriverPayload,
 } from '../types';
 
 type DetailAction =
@@ -759,7 +760,7 @@ export function DriverDetailPage() {
               </Table.Tr>
               <Table.Tr>
                 <Table.Th>Type de vehicule</Table.Th>
-                <Table.Td>{driver.vehicleType || '-'}</Table.Td>
+                <Table.Td>{labelVehicleType(driver.vehicleType)}</Table.Td>
               </Table.Tr>
               <Table.Tr>
                 <Table.Th>Inscription</Table.Th>

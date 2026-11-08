@@ -1,12 +1,44 @@
 export type DriverStatus = 'active' | 'inactive' | 'suspended';
 export type FuelCardStatus = 'active' | 'inactive';
 export type FuelCardCreationStatus = 'idle' | 'queued' | 'processing' | 'success' | 'failed';
+/** Aligné tiers-service enum (9) + mobility inscription (6 exposés). */
 export type DriverVehicleType =
+  | 'gbaka'
+  | 'taxi'
+  | 'woro_woro'
+  | 'vtc'
+  | 'cargo'
+  | 'heavy_truck'
   | 'two_wheels'
   | 'three_wheels'
-  | 'personal'
-  | 'cargo'
-  | 'heavy_truck';
+  | 'personal';
+
+/** Types proposés à la création / édition (comme mobility VehicleStepView). */
+export const CURRENT_VEHICLE_TYPES: DriverVehicleType[] = [
+  'gbaka',
+  'taxi',
+  'woro_woro',
+  'vtc',
+  'cargo',
+  'heavy_truck',
+];
+
+export const VEHICLE_TYPE_LABELS: Record<DriverVehicleType, string> = {
+  gbaka: 'Gbaka',
+  taxi: 'Taxi',
+  woro_woro: 'Woro-woro',
+  vtc: 'VTC',
+  cargo: 'Cargo',
+  heavy_truck: 'Poids lourd',
+  two_wheels: 'Moto (legacy)',
+  three_wheels: 'Tricycle (legacy)',
+  personal: 'Voiture (legacy)',
+};
+
+export function labelVehicleType(type?: string | null): string {
+  if (!type) return '-';
+  return VEHICLE_TYPE_LABELS[type as DriverVehicleType] ?? type;
+}
 
 export interface DriverCompany {
   _id?: string;
