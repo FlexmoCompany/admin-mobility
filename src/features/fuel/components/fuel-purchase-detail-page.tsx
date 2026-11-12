@@ -4,6 +4,7 @@ import { Badge, Button, Card, Group, SimpleGrid, Stack, Table, Text, Tooltip, Ti
 import { IconArrowLeft } from '@tabler/icons-react';
 
 import { getFuelPurchaseById } from '../api/fuel-api';
+import { FuelLedgerCard } from './fuel-ledger-card';
 import type { FuelPurchaseStatus } from '../types';
 
 const formatCurrency = (value?: number) =>
@@ -354,6 +355,8 @@ export function FuelPurchaseDetailPage() {
           ) : null}
         </Card>
       ) : null}
+
+      {purchase.status === 'completed' ? <FuelLedgerCard purchaseId={purchaseId} /> : null}
     </Stack>
   );
 }
