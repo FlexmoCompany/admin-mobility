@@ -41,6 +41,7 @@ const statusOptions = [
 const genderOptions = [
   {value: 'male', label: 'Homme'},
   {value: 'female', label: 'Femme'},
+  {value: 'other', label: 'Autre'},
 ];
 
 const currentVehicleOptions = CURRENT_VEHICLE_TYPES.map((value) => ({
@@ -64,7 +65,7 @@ export function DriverFormModal({
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [reference, setReference] = useState('');
-  const [gender, setGender] = useState<'male' | 'female' | ''>('');
+  const [gender, setGender] = useState<'male' | 'female' | 'other' | ''>('');
   const [status, setStatus] = useState<DriverStatus>('inactive');
   const [vehicleType, setVehicleType] = useState<DriverVehicleType>('vtc');
 
@@ -216,7 +217,7 @@ export function DriverFormModal({
             label="Genre"
             data={genderOptions}
             value={gender}
-            onChange={(value) => setGender((value as 'male' | 'female' | null) ?? '')}
+            onChange={(value) => setGender((value as 'male' | 'female' | 'other' | null) ?? '')}
           />
         </Group>
         <Group grow>

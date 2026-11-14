@@ -51,6 +51,8 @@ import {
   type UpdateDriverPayload,
 } from '../types';
 
+const GENDER_LABELS: Record<string, string> = {male: 'Homme', female: 'Femme', other: 'Autre'};
+
 type DetailAction =
   | {type: 'status'; nextStatus: DriverStatus}
   | {type: 'fuelCard'; nextStatus: FuelCardStatus}
@@ -752,7 +754,7 @@ export function DriverDetailPage() {
               </Table.Tr>
               <Table.Tr>
                 <Table.Th>Genre</Table.Th>
-                <Table.Td>{driver.gender || '-'}</Table.Td>
+                <Table.Td>{GENDER_LABELS[driver.gender ?? ''] ?? '-'}</Table.Td>
               </Table.Tr>
               <Table.Tr>
                 <Table.Th>Agent de terrain</Table.Th>

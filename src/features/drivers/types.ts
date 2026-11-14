@@ -101,7 +101,7 @@ export interface DriverRecord {
   reference?: string;
   email?: string;
   phoneNumber?: string;
-  gender?: 'male' | 'female';
+  gender?: 'male' | 'female' | 'other';
   avatar?: string | null;
   status?: DriverStatus;
   vehicleType?: DriverVehicleType;
@@ -199,7 +199,7 @@ export interface CreateDriverPayload {
   email?: string;
   password: string;
   reference?: string;
-  gender?: 'male' | 'female';
+  gender?: 'male' | 'female' | 'other';
   status?: DriverStatus;
   vehicleType?: DriverVehicleType;
 }
@@ -211,7 +211,7 @@ export interface UpdateDriverPayload {
   phoneNumber?: string;
   email?: string;
   reference?: string;
-  gender?: 'male' | 'female';
+  gender?: 'male' | 'female' | 'other';
   status?: DriverStatus;
   vehicleType?: DriverVehicleType;
 }
