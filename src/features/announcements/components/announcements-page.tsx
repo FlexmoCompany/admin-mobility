@@ -33,6 +33,8 @@ import {
   type AnnouncementLiveState,
   type AnnouncementStatus,
 } from '../api';
+import { useAuthStore } from '@/features/auth/auth-store';
+
 import { AnnouncementFormModal } from './announcement-form-modal';
 import { AnnouncementPreview } from './announcement-preview';
 
@@ -58,6 +60,8 @@ type Confirm = { action: 'archive' | 'delete'; announcement: Announcement } | nu
 
 export function AnnouncementsPage() {
   const queryClient = useQueryClient();
+  // Publier et modifier une annonce en ligne : superadmin (verifie aussi par support-service).
+  const canPublish = useAuthStore((state) => state.operator?.role === 'superadmin');
   const [filter, setFilter] = useState<Filter>('all');
   const [editing, setEditing] = useState<Announcement | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -159,6 +163,13 @@ export function AnnouncementsPage() {
           Nouvelle annonce
         </Button>
       </Group>
+
+      {!canPublish ? (
+        <Alert color="blue" variant="light" data-testid="announcements-superadmin-notice">
+          Vous pouvez préparer des brouillons et archiver une annonce. La publication, et la modification
+          d&apos;une annonce en ligne, sont réservées aux superadmins.
+        </Alert>
+      ) : null}
 
       <Card withBorder radius="md" padding="lg">
         <Group align="flex-start" gap="xl" wrap="wrap">
@@ -266,10 +277,20 @@ export function AnnouncementsPage() {
                     </Table.Td>
                     <Table.Td>
                       <Group gap="xs" justify="flex-end" wrap="nowrap">
-                        <Button size="xs" variant="default" onClick={() => openEdit(a)}>
+                        <Button
+                          size="xs"
+                          variant="default"
+                          onClick={() => openEdit(a)}
+                          disabled={a.status === 'published' && !canPublish}
+                          title={
+                            a.status === 'published' && !canPublish
+                              ? 'Annonce en ligne : modification réservée aux superadmins'
+                              : undefined
+                          }
+                        >
                           Modifier
                         </Button>
-                        {a.status !== 'published' && state !== 'ended' ? (
+                        {canPublish && a.status !== 'published' && state !== 'ended' ? (
                           <Button
                             size="xs"
                             loading={busy && actionMutation.variables?.action === 'publish'}
@@ -320,6 +341,7 @@ export function AnnouncementsPage() {
         opened={isFormOpen}
         announcement={editing}
         isSubmitting={saveMutation.isPending}
+        canPublish={canPublish}
         error={formError}
         onClose={() => setIsFormOpen(false)}
         onSubmit={async (input, { publish }) => {

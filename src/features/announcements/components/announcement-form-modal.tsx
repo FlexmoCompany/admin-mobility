@@ -32,6 +32,8 @@ interface AnnouncementFormModalProps {
   /** Annonce a modifier ; absente pour une creation. */
   announcement: Announcement | null;
   isSubmitting: boolean;
+  /** Superadmin : peut publier. Sinon, seul le brouillon est proposé. */
+  canPublish: boolean;
   error: string | null;
   onClose: () => void;
   onSubmit: (input: AnnouncementInput, options: { publish: boolean }) => Promise<void>;
@@ -51,6 +53,7 @@ export function AnnouncementFormModal({
   opened,
   announcement,
   isSubmitting,
+  canPublish,
   error,
   onClose,
   onSubmit,
@@ -261,13 +264,15 @@ export function AnnouncementFormModal({
             >
               Enregistrer le brouillon
             </Button>
-            <Button
-              onClick={() => void onSubmit(buildInput(), { publish: true })}
-              loading={isSubmitting}
-              disabled={!canSubmit || endInPast}
-            >
-              Enregistrer et publier
-            </Button>
+            {canPublish ? (
+              <Button
+                onClick={() => void onSubmit(buildInput(), { publish: true })}
+                loading={isSubmitting}
+                disabled={!canSubmit || endInPast}
+              >
+                Enregistrer et publier
+              </Button>
+            ) : null}
           </>
         )}
       </Group>
