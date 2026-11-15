@@ -7,6 +7,7 @@ import {
   CreditCard,
   Fuel,
   LayoutDashboard,
+  Megaphone,
   Package,
   Users,
   Settings2,
@@ -23,6 +24,7 @@ export type AppRouteKey =
   | 'fuel-finance'
   | 'treasury'
   | 'incidents'
+  | 'announcements'
   | 'admins'
   | 'mobility-config'
   | 'app-versions';
@@ -100,6 +102,13 @@ export const INTERNAL_NAV_ITEMS: NavItem[] = [
     href: '/incidents',
     description: 'Support et anomalies',
     icon: AlertTriangle,
+  },
+  {
+    key: 'announcements',
+    label: 'Annonces',
+    href: '/announcements',
+    description: "Carte d'accueil de l'app chauffeur",
+    icon: Megaphone,
   },
   {
     key: 'admins',

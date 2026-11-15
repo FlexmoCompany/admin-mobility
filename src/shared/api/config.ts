@@ -25,6 +25,7 @@ export const serviceConfig = {
   apiGateway: resolveApiGateway(),
   tiersService: '/v1/tiers-service',
   financeService: '/v1/finance-service',
+  supportService: '/v1/support-service',
 } as const;
 
 export const runtimeConfig = {

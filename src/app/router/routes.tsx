@@ -2,6 +2,7 @@ import { Navigate, createBrowserRouter } from 'react-router-dom';
 
 import { AppShellLayout } from '@/app/layouts/app-shell-layout';
 import { AdminsPage } from '@/features/admins/components/admins-page';
+import { AnnouncementsPage } from '@/features/announcements/components/announcements-page';
 import { AppVersionsPage } from '@/features/app-versions/components/app-versions-page';
 import { MobilityConfigPage } from '@/features/mobility-config/components/mobility-config-page';
 import { MyAccountPage } from '@/features/admins/components/my-account-page';
@@ -104,6 +105,10 @@ export const appRouter = createBrowserRouter([
       {
         path: '/incidents',
         element: <IncidentsPage />,
+      },
+      {
+        path: '/announcements',
+        element: <AnnouncementsPage />,
       },
       {
         path: '/admins',
