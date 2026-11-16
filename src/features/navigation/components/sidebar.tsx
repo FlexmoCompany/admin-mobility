@@ -11,8 +11,8 @@ interface SidebarProps {
 
 export function Sidebar({ items, activePath }: SidebarProps) {
   return (
-    <Stack h="100%" gap="md" p="md">
-      <Box className="brand-panel">
+    <Stack h="100%" gap="md" p="md" style={{ minHeight: 0, overflow: 'hidden' }}>
+      <Box className="brand-panel" style={{ flexShrink: 0 }}>
         <Group justify="space-between" align="flex-start" mb="md">
           <ThemeIcon size={42} radius={8} color="yellow" variant="filled">
             <IconGasStation size={22} />
@@ -32,7 +32,12 @@ export function Sidebar({ items, activePath }: SidebarProps) {
         </Text>
       </Box>
 
-      <Stack component="nav" gap={4} aria-label="Navigation principale">
+      <Stack
+        component="nav"
+        gap={4}
+        aria-label="Navigation principale"
+        style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}
+      >
         {items.map((item) => {
           const Icon = item.icon;
           const active = activePath === item.href || activePath.startsWith(`${item.href}/`);
@@ -55,7 +60,7 @@ export function Sidebar({ items, activePath }: SidebarProps) {
         })}
       </Stack>
 
-      <Box mt="auto" className="shift-panel">
+      <Box className="shift-panel" style={{ flexShrink: 0 }}>
         <Group justify="space-between" mb={8}>
           <Text size="xs" fw={800} tt="uppercase" c="dimmed">
             Quart actif

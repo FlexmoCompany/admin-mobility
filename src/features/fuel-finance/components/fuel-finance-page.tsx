@@ -111,9 +111,36 @@ export function FuelFinancePage() {
       <div>
         <Title order={2}>Finance carburant</Title>
         <Text c="dimmed" mt={4}>
-          Marge, remises et cashback calcules sur les achats carburant historises.
+          Lecture des flux réels. Total ne finance pas les 20 F/L ; le palier est un flux à part.
         </Text>
       </div>
+
+      <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="md">
+        <Card withBorder padding="md" style={{ borderColor: '#3F6AF4' }}>
+          <Text size="xs" fw={700} c="#3F6AF4">
+            1 · Cashback
+          </Text>
+          <Text size="sm" mt={6}>
+            Charge FlexMo 20 F/L — toujours due au chauffeur.
+          </Text>
+        </Card>
+        <Card withBorder padding="md" style={{ borderColor: 'teal' }}>
+          <Text size="xs" fw={700} c="teal">
+            2 · Reçu
+          </Text>
+          <Text size="sm" mt={6}>
+            Palier Total — rétrocession partenaire, flux séparé.
+          </Text>
+        </Card>
+        <Card withBorder padding="md">
+          <Text size="xs" fw={700}>
+            3 · Marge
+          </Text>
+          <Text size="sm" mt={6}>
+            Reçu − cashback = résultat FlexMo (vert si +, rouge si −).
+          </Text>
+        </Card>
+      </SimpleGrid>
 
       {overviewQuery.isError || flowsQuery.isError ? (
         <Alert

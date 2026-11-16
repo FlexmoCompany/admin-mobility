@@ -2,6 +2,9 @@ import { Navigate, createBrowserRouter } from 'react-router-dom';
 
 import { AppShellLayout } from '@/app/layouts/app-shell-layout';
 import { AdminsPage } from '@/features/admins/components/admins-page';
+import { AnnouncementsPage } from '@/features/announcements/components/announcements-page';
+import { AppVersionsPage } from '@/features/app-versions/components/app-versions-page';
+import { MobilityConfigPage } from '@/features/mobility-config/components/mobility-config-page';
 import { MyAccountPage } from '@/features/admins/components/my-account-page';
 import { AuthPage } from '@/features/auth/auth-page';
 import { RequireAuth } from '@/features/auth/require-auth';
@@ -14,6 +17,7 @@ import { FuelPurchaseDetailPage } from '@/features/fuel/components/fuel-purchase
 import { FuelPurchasesPage } from '@/features/fuel/components/fuel-purchases-page';
 import { CockpitPage } from '@/features/cockpit/components/cockpit-page';
 import { FuelFinancePage } from '@/features/fuel-finance/components/fuel-finance-page';
+import { TreasuryPage } from '@/features/treasury/components/treasury-page';
 import { IncidentsPage } from '@/features/incidents/components/incidents-page';
 import { PartnerDetailPage } from '@/features/partners/components/partner-detail-page';
 import { PartnersPage } from '@/features/partners/components/partners-page';
@@ -91,14 +95,46 @@ export const appRouter = createBrowserRouter([
         element: <FuelFinancePage />,
       },
       {
+        path: '/treasury',
+        element: (
+          <RequireSuperadmin>
+            <TreasuryPage />
+          </RequireSuperadmin>
+        ),
+      },
+      {
         path: '/incidents',
         element: <IncidentsPage />,
+      },
+      {
+        path: '/announcements',
+        element: <AnnouncementsPage />,
       },
       {
         path: '/admins',
         element: (
           <RequireSuperadmin>
             <AdminsPage />
+          </RequireSuperadmin>
+        ),
+      },
+      {
+        path: '/agents/settings',
+        element: <Navigate to="/mobility-config" replace />,
+      },
+      {
+        path: '/mobility-config',
+        element: (
+          <RequireSuperadmin>
+            <MobilityConfigPage />
+          </RequireSuperadmin>
+        ),
+      },
+      {
+        path: '/app-versions',
+        element: (
+          <RequireSuperadmin>
+            <AppVersionsPage />
           </RequireSuperadmin>
         ),
       },

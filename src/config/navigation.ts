@@ -7,7 +7,11 @@ import {
   CreditCard,
   Fuel,
   LayoutDashboard,
+  Megaphone,
+  Package,
   Users,
+  Settings2,
+  Wallet,
 } from 'lucide-react';
 
 export type AppRouteKey =
@@ -18,8 +22,12 @@ export type AppRouteKey =
   | 'fuel'
   | 'cards-balances'
   | 'fuel-finance'
+  | 'treasury'
   | 'incidents'
-  | 'admins';
+  | 'announcements'
+  | 'admins'
+  | 'mobility-config'
+  | 'app-versions';
 
 export interface NavItem {
   key: AppRouteKey;
@@ -81,6 +89,14 @@ export const INTERNAL_NAV_ITEMS: NavItem[] = [
     icon: Activity,
   },
   {
+    key: 'treasury',
+    label: 'Trésorerie',
+    href: '/treasury',
+    description: 'Appro, encaissement, sweep',
+    icon: Wallet,
+    superadminOnly: true,
+  },
+  {
     key: 'incidents',
     label: 'Incidents',
     href: '/incidents',
@@ -88,11 +104,34 @@ export const INTERNAL_NAV_ITEMS: NavItem[] = [
     icon: AlertTriangle,
   },
   {
+    key: 'announcements',
+    label: 'Annonces',
+    href: '/announcements',
+    description: "Carte d'accueil de l'app chauffeur",
+    icon: Megaphone,
+  },
+  {
     key: 'admins',
     label: 'Admins',
     href: '/admins',
     description: 'Gestion des comptes admin',
     icon: Users,
+    superadminOnly: true,
+  },
+  {
+    key: 'mobility-config',
+    label: 'Config Mobility',
+    href: '/mobility-config',
+    description: 'Cashback, paliers, parrainage',
+    icon: Settings2,
+    superadminOnly: true,
+  },
+  {
+    key: 'app-versions',
+    label: 'Versions app',
+    href: '/app-versions',
+    description: 'APK OTP Pay et changelog',
+    icon: Package,
     superadminOnly: true,
   },
 ];

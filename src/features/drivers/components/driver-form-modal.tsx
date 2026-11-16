@@ -16,6 +16,10 @@ import type {
   DriverVehicleType,
   UpdateDriverPayload,
 } from '@/features/drivers/types';
+import {
+  CURRENT_VEHICLE_TYPES,
+  VEHICLE_TYPE_LABELS,
+} from '@/features/drivers/types';
 import type { PartnerCompany } from '@/features/partners/types';
 
 interface DriverFormModalProps {
@@ -37,15 +41,13 @@ const statusOptions = [
 const genderOptions = [
   {value: 'male', label: 'Homme'},
   {value: 'female', label: 'Femme'},
+  {value: 'other', label: 'Autre'},
 ];
 
-const vehicleTypeOptions = [
-  {value: 'personal', label: 'Personnel'},
-  {value: 'two_wheels', label: 'Deux roues'},
-  {value: 'three_wheels', label: 'Trois roues'},
-  {value: 'cargo', label: 'Cargo'},
-  {value: 'heavy_truck', label: 'Poids lourd'},
-];
+const currentVehicleOptions = CURRENT_VEHICLE_TYPES.map((value) => ({
+  value,
+  label: VEHICLE_TYPE_LABELS[value],
+}));
 
 export function DriverFormModal({
   opened,
@@ -63,9 +65,9 @@ export function DriverFormModal({
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [reference, setReference] = useState('');
-  const [gender, setGender] = useState<'male' | 'female' | ''>('');
+  const [gender, setGender] = useState<'male' | 'female' | 'other' | ''>('');
   const [status, setStatus] = useState<DriverStatus>('inactive');
-  const [vehicleType, setVehicleType] = useState<DriverVehicleType>('personal');
+  const [vehicleType, setVehicleType] = useState<DriverVehicleType>('vtc');
 
   const partnerOptions = useMemo(
     () =>
@@ -75,6 +77,24 @@ export function DriverFormModal({
       })),
     [partners]
   );
+
+  // Legacy en DB : garder l'option visible (disabled) pour ne pas casser le Select.
+  const vehicleTypeOptions = useMemo(() => {
+    if (
+      vehicleType &&
+      !CURRENT_VEHICLE_TYPES.includes(vehicleType)
+    ) {
+      return [
+        {
+          value: vehicleType,
+          label: VEHICLE_TYPE_LABELS[vehicleType],
+          disabled: true,
+        },
+        ...currentVehicleOptions,
+      ];
+    }
+    return currentVehicleOptions;
+  }, [vehicleType]);
 
   useEffect(() => {
     if (mode === 'edit' && driver) {
@@ -87,7 +107,7 @@ export function DriverFormModal({
       setReference(driver.reference ?? '');
       setGender(driver.gender ?? '');
       setStatus(driver.status ?? 'inactive');
-      setVehicleType(driver.vehicleType ?? 'personal');
+      setVehicleType(driver.vehicleType ?? 'vtc');
       return;
     }
 
@@ -100,7 +120,7 @@ export function DriverFormModal({
     setReference('');
     setGender('');
     setStatus('inactive');
-    setVehicleType('personal');
+    setVehicleType('vtc');
   }, [driver, mode, opened, partners]);
 
   const isDisabled =
@@ -197,7 +217,7 @@ export function DriverFormModal({
             label="Genre"
             data={genderOptions}
             value={gender}
-            onChange={(value) => setGender((value as 'male' | 'female' | null) ?? '')}
+            onChange={(value) => setGender((value as 'male' | 'female' | 'other' | null) ?? '')}
           />
         </Group>
         <Group grow>
@@ -213,7 +233,7 @@ export function DriverFormModal({
             data={vehicleTypeOptions}
             value={vehicleType}
             onChange={(value) =>
-              setVehicleType((value as DriverVehicleType | null) ?? 'personal')
+              setVehicleType((value as DriverVehicleType | null) ?? 'vtc')
             }
             allowDeselect={false}
           />

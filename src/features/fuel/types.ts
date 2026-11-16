@@ -33,6 +33,40 @@ export interface FuelPurchaseRecord {
   totalAmount?: number;
   flexmoDiscount?: number;
   driverCashback?: number;
+  tierLedgerApplied?: boolean;
+  tierIndex?: number | null;
+  cumulativeLitersBefore?: number | null;
+  cumulativeLitersAfter?: number | null;
+  totalReceivedPerLiter?: number | null;
+  flexmoDiffPerLiter?: number | null;
+  driverBonusPerLiter?: number | null;
+  totalReceivedAmount?: number | null;
+  flexmoSubsidyAmount?: number | null;
+  driverBonusAmount?: number | null;
+  productKey?: string | null;
+  refPricePerLiter?: number | null;
+  segments?: Array<{
+    tierIndex: number;
+    fromLiters: number;
+    toLiters: number;
+    liters: number;
+    ratePct: number;
+    totalReceivedPerLiter: number;
+    flexmoDiffPerLiter: number;
+    totalReceivedAmount: number;
+    flexmoSubsidyAmount: number;
+    driverBonusAmount: number;
+  }>;
+  ruleApplications?: {
+    liter?: {
+      version?: number;
+      result?: {amountCents?: number; liters?: number};
+    } | null;
+    tier?: {
+      version?: number;
+      result?: {amountCents?: number; ratePct?: number};
+    } | null;
+  };
   status?: FuelPurchaseStatus;
   source?: FuelPurchaseSource | string;
   paymentMethod?: string | null;
@@ -63,7 +97,8 @@ export interface FuelPurchaseStatisticsResponse {
     totalLiters: number;
     totalDiscount: number;
     totalCashback: number;
-    flexmoRevenue: number;
+    totalReceivedFromPartner: number;
+    flexmoSubsidy: number;
     completedCount: number;
     pendingCount: number;
     failedCount: number;

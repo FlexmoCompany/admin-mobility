@@ -40,15 +40,18 @@ import {
   updateDriverStatus,
 } from '../api/drivers-api';
 import { DriverFormModal } from './driver-form-modal';
-import type {
-  DriverFuelPurchase,
-  DriverRecord,
-  DriverStatus,
-  DriverVehicle,
-  FuelCardCreationStatus,
-  FuelCardStatus,
-  UpdateDriverPayload,
+import {
+  labelVehicleType,
+  type DriverFuelPurchase,
+  type DriverRecord,
+  type DriverStatus,
+  type DriverVehicle,
+  type FuelCardCreationStatus,
+  type FuelCardStatus,
+  type UpdateDriverPayload,
 } from '../types';
+
+const GENDER_LABELS: Record<string, string> = {male: 'Homme', female: 'Femme', other: 'Autre'};
 
 type DetailAction =
   | {type: 'status'; nextStatus: DriverStatus}
@@ -751,7 +754,7 @@ export function DriverDetailPage() {
               </Table.Tr>
               <Table.Tr>
                 <Table.Th>Genre</Table.Th>
-                <Table.Td>{driver.gender || '-'}</Table.Td>
+                <Table.Td>{GENDER_LABELS[driver.gender ?? ''] ?? '-'}</Table.Td>
               </Table.Tr>
               <Table.Tr>
                 <Table.Th>Agent de terrain</Table.Th>
@@ -759,7 +762,7 @@ export function DriverDetailPage() {
               </Table.Tr>
               <Table.Tr>
                 <Table.Th>Type de vehicule</Table.Th>
-                <Table.Td>{driver.vehicleType || '-'}</Table.Td>
+                <Table.Td>{labelVehicleType(driver.vehicleType)}</Table.Td>
               </Table.Tr>
               <Table.Tr>
                 <Table.Th>Inscription</Table.Th>

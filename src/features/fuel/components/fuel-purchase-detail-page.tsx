@@ -4,6 +4,7 @@ import { Badge, Button, Card, Group, SimpleGrid, Stack, Table, Text, Tooltip, Ti
 import { IconArrowLeft } from '@tabler/icons-react';
 
 import { getFuelPurchaseById } from '../api/fuel-api';
+import { FuelLedgerCard } from './fuel-ledger-card';
 import type { FuelPurchaseStatus } from '../types';
 
 const formatCurrency = (value?: number) =>
@@ -165,6 +166,74 @@ export function FuelPurchaseDetailPage() {
         </Card>
       </SimpleGrid>
 
+      {(() => {
+        const bonusXof =
+          purchase.driverBonusAmount ??
+          (purchase.ruleApplications?.liter?.result?.amountCents != null
+            ? purchase.ruleApplications.liter.result.amountCents / 100
+            : null);
+        const receivedXof =
+          purchase.totalReceivedAmount ??
+          (purchase.ruleApplications?.tier?.result?.amountCents != null
+            ? purchase.ruleApplications.tier.result.amountCents / 100
+            : null);
+        const resultXof =
+          bonusXof != null && receivedXof != null
+            ? Math.round((receivedXof - bonusXof) * 100) / 100
+            : purchase.flexmoSubsidyAmount != null
+              ? Math.round((-purchase.flexmoSubsidyAmount) * 100) / 100
+              : null;
+        const hasMarge = bonusXof != null || receivedXof != null;
+        const literV = purchase.ruleApplications?.liter?.version;
+        const tierV = purchase.ruleApplications?.tier?.version;
+        if (!hasMarge) return null;
+        return (
+          <Card withBorder radius="md" padding="lg">
+            <Group justify="space-between" mb="xs" align="flex-start">
+              <Title order={4}>Marge de ce plein</Title>
+              <Group gap="xs">
+                {literV != null ? (
+                  <Badge variant="light" color="blue">
+                    cashback_liter v{literV}
+                  </Badge>
+                ) : null}
+                {tierV != null ? (
+                  <Badge variant="light" color="blue">
+                    cashback_tier v{tierV}
+                  </Badge>
+                ) : null}
+              </Group>
+            </Group>
+            <Text size="sm" c="dimmed" mb="md">
+              Total ne finance pas les 20 F/L ; palier à part. FlexMo doit toujours le bonus
+              chauffeur.
+            </Text>
+            <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="md">
+              <Card withBorder padding="md">
+                <Text size="xs" c="dimmed">
+                  Bonus FlexMo
+                </Text>
+                <Text fw={700}>{formatCurrency(bonusXof ?? undefined)}</Text>
+              </Card>
+              <Card withBorder padding="md">
+                <Text size="xs" c="dimmed">
+                  Reçu Total
+                </Text>
+                <Text fw={700}>{formatCurrency(receivedXof ?? undefined)}</Text>
+              </Card>
+              <Card withBorder padding="md">
+                <Text size="xs" c="dimmed">
+                  Résultat
+                </Text>
+                <Text fw={700} c={resultXof == null ? undefined : resultXof >= 0 ? 'teal' : 'red'}>
+                  {formatCurrency(resultXof ?? undefined)}
+                </Text>
+              </Card>
+            </SimpleGrid>
+          </Card>
+        );
+      })()}
+
       <Card withBorder radius="md" padding="lg">
         <Title order={4} mb="md">
           Montants et volumes
@@ -202,6 +271,92 @@ export function FuelPurchaseDetailPage() {
           </Table.Tbody>
         </Table>
       </Card>
+
+      {purchase.tierLedgerApplied ? (
+        <Card withBorder radius="md" padding="lg">
+          <Title order={4} mb="md">
+            Snapshot paliers
+          </Title>
+          <Table mb="md">
+            <Table.Tbody>
+              <Table.Tr>
+                <Table.Th>Palier</Table.Th>
+                <Table.Td>P{purchase.tierIndex ?? '-'}</Table.Td>
+              </Table.Tr>
+              <Table.Tr>
+                <Table.Th>Cumul litres</Table.Th>
+                <Table.Td>
+                  {purchase.cumulativeLitersBefore ?? 0} → {purchase.cumulativeLitersAfter ?? 0}
+                </Table.Td>
+              </Table.Tr>
+              <Table.Tr>
+                <Table.Th>Prix ref / produit</Table.Th>
+                <Table.Td>
+                  {formatCurrency(purchase.refPricePerLiter ?? undefined)} ({purchase.productKey || '-'}
+                  )
+                </Table.Td>
+              </Table.Tr>
+              <Table.Tr>
+                <Table.Th>Reçu Total / L</Table.Th>
+                <Table.Td>{formatCurrency(purchase.totalReceivedPerLiter ?? undefined)}</Table.Td>
+              </Table.Tr>
+              <Table.Tr>
+                <Table.Th>Diff FlexMo / L</Table.Th>
+                <Table.Td>{formatCurrency(purchase.flexmoDiffPerLiter ?? undefined)}</Table.Td>
+              </Table.Tr>
+              <Table.Tr>
+                <Table.Th>Bonus chauffeur / L</Table.Th>
+                <Table.Td>{formatCurrency(purchase.driverBonusPerLiter ?? undefined)}</Table.Td>
+              </Table.Tr>
+              <Table.Tr>
+                <Table.Th>Reçu Total (montant)</Table.Th>
+                <Table.Td>{formatCurrency(purchase.totalReceivedAmount ?? undefined)}</Table.Td>
+              </Table.Tr>
+              <Table.Tr>
+                <Table.Th>Subvention FlexMo</Table.Th>
+                <Table.Td>{formatCurrency(purchase.flexmoSubsidyAmount ?? undefined)}</Table.Td>
+              </Table.Tr>
+              <Table.Tr>
+                <Table.Th>Bonus chauffeur</Table.Th>
+                <Table.Td>{formatCurrency(purchase.driverBonusAmount ?? undefined)}</Table.Td>
+              </Table.Tr>
+            </Table.Tbody>
+          </Table>
+          {(purchase.segments?.length ?? 0) > 1 ? (
+            <>
+              <Title order={5} mb="sm">
+                Segments multi-paliers
+              </Title>
+              <Table>
+                <Table.Thead>
+                  <Table.Tr>
+                    <Table.Th>Palier</Table.Th>
+                    <Table.Th>Litres</Table.Th>
+                    <Table.Th>Taux</Table.Th>
+                    <Table.Th>Reçu Total</Table.Th>
+                    <Table.Th>Diff FlexMo</Table.Th>
+                    <Table.Th>Bonus</Table.Th>
+                  </Table.Tr>
+                </Table.Thead>
+                <Table.Tbody>
+                  {purchase.segments?.map((s, i) => (
+                    <Table.Tr key={i}>
+                      <Table.Td>P{s.tierIndex}</Table.Td>
+                      <Table.Td>{s.liters}</Table.Td>
+                      <Table.Td>{s.ratePct}%</Table.Td>
+                      <Table.Td>{formatCurrency(s.totalReceivedAmount)}</Table.Td>
+                      <Table.Td>{formatCurrency(s.flexmoSubsidyAmount)}</Table.Td>
+                      <Table.Td>{formatCurrency(s.driverBonusAmount)}</Table.Td>
+                    </Table.Tr>
+                  ))}
+                </Table.Tbody>
+              </Table>
+            </>
+          ) : null}
+        </Card>
+      ) : null}
+
+      {purchase.status === 'completed' ? <FuelLedgerCard purchaseId={purchaseId} /> : null}
     </Stack>
   );
 }
