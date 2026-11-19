@@ -1,7 +1,11 @@
 import { runtimeConfig, serviceConfig } from './config';
 import { notifyUnauthorized, readToken } from './session';
 
-type ServiceName = 'tiersService' | 'financeService' | 'supportService';
+type ServiceName =
+  | 'tiersService'
+  | 'financeService'
+  | 'supportService'
+  | 'filesService';
 
 type Primitive = string | number | boolean;
 

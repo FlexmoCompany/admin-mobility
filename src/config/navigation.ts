@@ -9,6 +9,7 @@ import {
   LayoutDashboard,
   Megaphone,
   Package,
+  Trophy,
   Users,
   Settings2,
   Wallet,
@@ -25,6 +26,7 @@ export type AppRouteKey =
   | 'treasury'
   | 'incidents'
   | 'announcements'
+  | 'campaigns'
   | 'admins'
   | 'mobility-config'
   | 'app-versions';
@@ -109,6 +111,14 @@ export const INTERNAL_NAV_ITEMS: NavItem[] = [
     href: '/announcements',
     description: "Carte d'accueil de l'app chauffeur",
     icon: Megaphone,
+  },
+  {
+    key: 'campaigns',
+    label: 'Campagnes',
+    href: '/campaigns',
+    description: 'Jeux, concours, tirages chauffeurs',
+    icon: Trophy,
+    superadminOnly: true,
   },
   {
     key: 'admins',
