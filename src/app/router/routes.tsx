@@ -4,6 +4,10 @@ import { AppShellLayout } from '@/app/layouts/app-shell-layout';
 import { AdminsPage } from '@/features/admins/components/admins-page';
 import { AnnouncementsPage } from '@/features/announcements/components/announcements-page';
 import { AppVersionsPage } from '@/features/app-versions/components/app-versions-page';
+import { CampaignDetailPage } from '@/features/campaigns/components/campaign-detail-page';
+import { CampaignsPage } from '@/features/campaigns/components/campaigns-page';
+import { DrawsPage } from '@/features/campaigns/components/draws-page';
+import { FulfillmentPage } from '@/features/campaigns/components/fulfillment-page';
 import { MobilityConfigPage } from '@/features/mobility-config/components/mobility-config-page';
 import { MyAccountPage } from '@/features/admins/components/my-account-page';
 import { AuthPage } from '@/features/auth/auth-page';
@@ -109,6 +113,38 @@ export const appRouter = createBrowserRouter([
       {
         path: '/announcements',
         element: <AnnouncementsPage />,
+      },
+      {
+        path: '/campaigns',
+        element: (
+          <RequireSuperadmin>
+            <CampaignsPage />
+          </RequireSuperadmin>
+        ),
+      },
+      {
+        path: '/campaigns/draws',
+        element: (
+          <RequireSuperadmin>
+            <DrawsPage />
+          </RequireSuperadmin>
+        ),
+      },
+      {
+        path: '/campaigns/fulfillment',
+        element: (
+          <RequireSuperadmin>
+            <FulfillmentPage />
+          </RequireSuperadmin>
+        ),
+      },
+      {
+        path: '/campaigns/:campaignId',
+        element: (
+          <RequireSuperadmin>
+            <CampaignDetailPage />
+          </RequireSuperadmin>
+        ),
       },
       {
         path: '/admins',

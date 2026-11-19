@@ -26,6 +26,7 @@ export const serviceConfig = {
   tiersService: '/v1/tiers-service',
   financeService: '/v1/finance-service',
   supportService: '/v1/support-service',
+  filesService: '/v1/files-service/fileServ',
 } as const;
 
 export const runtimeConfig = {
