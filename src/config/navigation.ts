@@ -5,6 +5,7 @@ import {
   Building2,
   Car,
   CreditCard,
+  FlaskConical,
   Fuel,
   LayoutDashboard,
   Megaphone,
@@ -29,6 +30,7 @@ export type AppRouteKey =
   | 'campaigns'
   | 'admins'
   | 'mobility-config'
+  | 'ab-test'
   | 'app-versions';
 
 export interface NavItem {
@@ -134,6 +136,14 @@ export const INTERNAL_NAV_ITEMS: NavItem[] = [
     href: '/mobility-config',
     description: 'Cashback, paliers, parrainage',
     icon: Settings2,
+    superadminOnly: true,
+  },
+  {
+    key: 'ab-test',
+    label: 'A/B test',
+    href: '/ab-test',
+    description: 'Bonus de bienvenue : résultats et réglages',
+    icon: FlaskConical,
     superadminOnly: true,
   },
   {
