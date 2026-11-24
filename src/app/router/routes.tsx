@@ -8,6 +8,7 @@ import { CampaignDetailPage } from '@/features/campaigns/components/campaign-det
 import { CampaignsPage } from '@/features/campaigns/components/campaigns-page';
 import { DrawsPage } from '@/features/campaigns/components/draws-page';
 import { FulfillmentPage } from '@/features/campaigns/components/fulfillment-page';
+import { WelcomeBonusExperimentPage } from '@/features/experiments/components/welcome-bonus-page';
 import { MobilityConfigPage } from '@/features/mobility-config/components/mobility-config-page';
 import { MyAccountPage } from '@/features/admins/components/my-account-page';
 import { AuthPage } from '@/features/auth/auth-page';
@@ -163,6 +164,14 @@ export const appRouter = createBrowserRouter([
         element: (
           <RequireSuperadmin>
             <MobilityConfigPage />
+          </RequireSuperadmin>
+        ),
+      },
+      {
+        path: '/ab-test',
+        element: (
+          <RequireSuperadmin>
+            <WelcomeBonusExperimentPage />
           </RequireSuperadmin>
         ),
       },
