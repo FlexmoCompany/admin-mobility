@@ -70,7 +70,7 @@ export function AppShellLayout() {
     <AppShell
       header={{ height: 68 }}
       navbar={{
-        width: 288,
+        width: 248,
         breakpoint: 'md',
         collapsed: { mobile: !mobileOpened },
       }}

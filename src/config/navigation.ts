@@ -33,8 +33,20 @@ export type AppRouteKey =
   | 'ab-test'
   | 'app-versions';
 
+export type NavSection = 'pilotage' | 'operations' | 'finance' | 'app' | 'admin';
+
+/** Rubriques de la barre latérale, dans l'ordre d'affichage. */
+export const NAV_SECTIONS: { key: NavSection; label: string }[] = [
+  { key: 'pilotage', label: 'Pilotage' },
+  { key: 'operations', label: 'Opérations' },
+  { key: 'finance', label: 'Finance' },
+  { key: 'app', label: 'App chauffeur' },
+  { key: 'admin', label: 'Administration' },
+];
+
 export interface NavItem {
   key: AppRouteKey;
+  section: NavSection;
   label: string;
   href: string;
   description: string;
@@ -45,6 +57,7 @@ export interface NavItem {
 export const INTERNAL_NAV_ITEMS: NavItem[] = [
   {
     key: 'cockpit',
+    section: 'pilotage',
     label: 'Cockpit',
     href: '/cockpit',
     description: "Vue d'ensemble ops",
@@ -52,6 +65,7 @@ export const INTERNAL_NAV_ITEMS: NavItem[] = [
   },
   {
     key: 'partners',
+    section: 'operations',
     label: 'Partenaires',
     href: '/partners',
     description: 'Partenaires flotte',
@@ -59,6 +73,7 @@ export const INTERNAL_NAV_ITEMS: NavItem[] = [
   },
   {
     key: 'drivers',
+    section: 'operations',
     label: 'Conducteurs',
     href: '/drivers',
     description: 'Gestion conducteurs',
@@ -66,13 +81,15 @@ export const INTERNAL_NAV_ITEMS: NavItem[] = [
   },
   {
     key: 'vehicles',
-    label: 'Vehicules',
+    section: 'operations',
+    label: 'Véhicules',
     href: '/vehicles',
     description: 'Parc roulant',
     icon: Car,
   },
   {
     key: 'fuel',
+    section: 'operations',
     label: 'Carburant',
     href: '/fuel',
     description: 'Achats et imports',
@@ -80,6 +97,7 @@ export const INTERNAL_NAV_ITEMS: NavItem[] = [
   },
   {
     key: 'cards-balances',
+    section: 'operations',
     label: 'Cartes et soldes',
     href: '/cards-balances',
     description: 'Cartes, soldes et mouvements',
@@ -87,13 +105,15 @@ export const INTERNAL_NAV_ITEMS: NavItem[] = [
   },
   {
     key: 'fuel-finance',
+    section: 'finance',
     label: 'Finance carburant',
     href: '/fuel-finance',
-    description: 'Flux finances lies au carburant',
+    description: 'Flux financiers liés au carburant',
     icon: Activity,
   },
   {
     key: 'treasury',
+    section: 'finance',
     label: 'Trésorerie',
     href: '/treasury',
     description: 'Appro, encaissement, sweep',
@@ -102,6 +122,7 @@ export const INTERNAL_NAV_ITEMS: NavItem[] = [
   },
   {
     key: 'incidents',
+    section: 'operations',
     label: 'Incidents',
     href: '/incidents',
     description: 'Support et anomalies',
@@ -109,6 +130,7 @@ export const INTERNAL_NAV_ITEMS: NavItem[] = [
   },
   {
     key: 'announcements',
+    section: 'app',
     label: 'Annonces',
     href: '/announcements',
     description: "Carte d'accueil de l'app chauffeur",
@@ -116,6 +138,7 @@ export const INTERNAL_NAV_ITEMS: NavItem[] = [
   },
   {
     key: 'campaigns',
+    section: 'app',
     label: 'Campagnes',
     href: '/campaigns',
     description: 'Jeux, concours, tirages chauffeurs',
@@ -124,6 +147,7 @@ export const INTERNAL_NAV_ITEMS: NavItem[] = [
   },
   {
     key: 'admins',
+    section: 'admin',
     label: 'Admins',
     href: '/admins',
     description: 'Gestion des comptes admin',
@@ -132,6 +156,7 @@ export const INTERNAL_NAV_ITEMS: NavItem[] = [
   },
   {
     key: 'mobility-config',
+    section: 'app',
     label: 'Config Mobility',
     href: '/mobility-config',
     description: 'Cashback, paliers, parrainage',
@@ -140,6 +165,7 @@ export const INTERNAL_NAV_ITEMS: NavItem[] = [
   },
   {
     key: 'ab-test',
+    section: 'app',
     label: 'A/B test',
     href: '/ab-test',
     description: 'Bonus de bienvenue : résultats et réglages',
@@ -148,6 +174,7 @@ export const INTERNAL_NAV_ITEMS: NavItem[] = [
   },
   {
     key: 'app-versions',
+    section: 'app',
     label: 'Versions app',
     href: '/app-versions',
     description: 'APK OTP Pay et changelog',
