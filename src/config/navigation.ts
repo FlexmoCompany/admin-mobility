@@ -1,6 +1,7 @@
 import type { LucideIcon } from 'lucide-react';
 import {
   Activity,
+  ArrowLeftRight,
   AlertTriangle,
   Building2,
   Car,
@@ -24,6 +25,7 @@ export type AppRouteKey =
   | 'fuel'
   | 'cards-balances'
   | 'fuel-finance'
+  | 'recharges-allocations'
   | 'treasury'
   | 'incidents'
   | 'announcements'
@@ -110,6 +112,14 @@ export const INTERNAL_NAV_ITEMS: NavItem[] = [
     href: '/fuel-finance',
     description: 'Flux financiers liés au carburant',
     icon: Activity,
+  },
+  {
+    key: 'recharges-allocations',
+    section: 'finance',
+    label: 'Recharges & allocations',
+    href: '/recharges-allocations',
+    description: 'Recharges Wave et allocations TotalEnergies liées',
+    icon: ArrowLeftRight,
   },
   {
     key: 'treasury',
