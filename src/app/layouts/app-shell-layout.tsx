@@ -70,7 +70,7 @@ export function AppShellLayout() {
     <AppShell
       header={{ height: 68 }}
       navbar={{
-        width: 248,
+        width: 256,
         breakpoint: 'md',
         collapsed: { mobile: !mobileOpened },
       }}
@@ -79,13 +79,14 @@ export function AppShellLayout() {
     >
       <AppShell.Header className="admin-header">
         <Group h="100%" px="md" justify="space-between" wrap="nowrap">
-          <Group gap="sm" wrap="nowrap">
+          <Group gap="sm" wrap="nowrap" style={{ minWidth: 0 }}>
             <Burger opened={mobileOpened} onClick={toggleMobile} hiddenFrom="md" size="sm" />
-            <div>
-              <Text size="xs" c="dimmed" fw={700} tt="uppercase">
+            {/* Titre sur une ligne : tronqué si la place manque (mobile). */}
+            <div style={{ minWidth: 0 }}>
+              <Text size="xs" c="dimmed" fw={700} tt="uppercase" truncate>
                 Fuel Ops / {activePath.startsWith('/my-account') ? 'Mon compte' : activeItem?.label ?? 'Cockpit'}
               </Text>
-              <Title order={3} className="header-title">
+              <Title order={3} className="header-title" lineClamp={1}>
                 {activePath.startsWith('/my-account') ? 'Mon compte' : activeItem?.label ?? 'Cockpit'}
               </Title>
             </div>
